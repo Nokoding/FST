@@ -1,4 +1,4 @@
-# Panel Count
+# FST - Friendship Tracker
 
 Track quality time with a small number of people. Everyone gets a comic panel,
 a `+` and a `-`, and a profile you can style. The dashboard turns those counts
