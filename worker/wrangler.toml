@@ -1,0 +1,17 @@
+name = "fst"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Replace the id below with the one wrangler prints when you run:
+#   npx wrangler kv namespace create PANEL_KV
+[[kv_namespaces]]
+binding = "PANEL_KV"
+id = "PUT_YOUR_KV_NAMESPACE_ID_HERE"
+
+[vars]
+# Where your app is hosted, no trailing slash.
+ALLOWED_ORIGIN = "https://nokoding.github.io"
+
+# Secrets are not kept here. Set them once with:
+#   npx wrangler secret put DISCORD_CLIENT_ID
+#   npx wrangler secret put DISCORD_CLIENT_SECRET

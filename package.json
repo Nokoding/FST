@@ -1,0 +1,21 @@
+{
+  "name": "panel-count",
+  "version": "1.0.0",
+  "description": "Track quality time with the people who matter, one comic panel each. Offline first PWA with optional Google Drive or Discord sync.",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "test": "node --test test/*.test.js",
+    "dev": "node scripts/build.js && node scripts/serve.js",
+    "serve": "node scripts/serve.js",
+    "vendor": "node scripts/vendor.js"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/preset-react": "^7.29.7"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
