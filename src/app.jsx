@@ -1470,7 +1470,7 @@ function SyncSettings({ syncer }) {
   return (
     <>
       <Row title="Google Drive"
-        hint="Keeps a hidden file in your own Drive that only this app can see. No server to run and nothing counts against anyone but you. Paste an OAuth client ID from the Google Cloud console, the setup is in the readme.">
+        hint="Keeps a hidden file in your own Drive that only this app can see. No server to run, and nothing counts against anyone but you. It needs a client ID from Google first, which is a fifteen minute job you only do once. The steps are in docs/sync.md.">
         <input className="pc-select" style={{ width: "100%", marginBottom: 8, fontSize: 12.5 }}
           placeholder="1234-abcd.apps.googleusercontent.com"
           value={clientId} onChange={(e) => saveClientId(e.target.value)} />

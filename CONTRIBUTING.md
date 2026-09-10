@@ -9,6 +9,9 @@ npm install
 npm run dev
 ```
 
+[docs/developing.md](docs/developing.md) has the commands, the layout, and how
+the build fits together.
+
 ## Before you open a PR
 
 ```bash
@@ -37,6 +40,7 @@ Add a test. The rules that must keep holding:
 
 Losing someone's counts silently is the worst bug this app can have, which is
 why that file has tests and the rest does not.
+[docs/architecture.md](docs/architecture.md) explains why it is built this way.
 
 ## Style
 

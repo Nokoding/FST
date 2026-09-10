@@ -1,7 +1,8 @@
-# Panel Count sync server
+# FST sync server
 
 Only needed if you want to log in with **Discord**. Google Drive sync needs
-none of this.
+none of this, and it is the easier road. See
+[docs/sync.md](../docs/sync.md) before you start here.
 
 Discord can prove who you are, but it gives you nowhere to keep files. So this
 worker holds the data: one JSON blob per Discord account, in Cloudflare KV.

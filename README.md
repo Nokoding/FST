@@ -3,107 +3,58 @@
   &nbsp;FST &nbsp;-&nbsp; Friendship Tracker
 </h1>
 
-Track quality time with a small number of people. Everyone gets a comic panel,
-a `+` and a `-`, and a profile you can style. The dashboard turns those counts
-into a pie, a donut, a disk map, bars, rings or a radar so you can see at a
-glance who you have been neglecting.
+A tally counter for your friendships. Everyone you want to keep up with gets
+their own comic panel with a `+` and a `-`. Tap `+` when you actually spend
+time with them.
 
-It is an offline first PWA. Install it, it runs full screen with its own icon,
-and it works with no connection. Sync is optional and off by default.
+"Am I being a bad friend" is easy to feel and hard to check. A number is harder
+to argue with than a vibe.
 
-I built this because "am I being a bad friend" is easy to feel and hard to
-check. A number is harder to argue with than a vibe.
+**[Open the app](https://nokoding.github.io/FST/)**
 
-## What it does
+## What you can do with it
 
-- A panel per person, with a torn comic edge between them. Click one and it
-  grows, pushing the others aside. Panels drop detail as they get narrower, so
-  eight people still works, the ones you are not looking at just become score
-  strips.
-- Fullscreen a panel with the corner button, a double tap, or double click.
-- Profile customization roughly matching what Discord charges for: a two tone
-  gradient with a free angle, a banner, picture frames, animated profile
-  effects, name styles, tags, and an about text.
-- Sections, so Discord friends and Instagram friends are separate boards.
-- Counters that reset weekly, monthly, on a custom interval, or never. All time
-  totals never reset. Old periods get filed and stay readable.
-- Six chart types, drawn by hand in SVG. No chart library, which is why the
-  whole app still works offline.
-- Optional sync to Google Drive or Discord, see [docs/SYNC.md](docs/SYNC.md).
+- Keep separate pages for separate groups. The people you text, the people you
+  see, whatever split makes sense to you.
+- Give each person a look of their own: a color gradient, a picture, a banner,
+  a frame, tags, and a few lines about them.
+- See who you have been neglecting. The dashboard draws the counts as a pie, a
+  donut, bars, rings, a radar or a disk map.
+- Reset the count weekly, monthly, on your own schedule, or never. The all time
+  total never resets.
 
-## Run it
+## Getting it
 
-```bash
-npm install
-npm run dev        # builds, then serves dist on http://localhost:8000
-```
+It opens in a browser and installs onto a phone or a computer like a normal
+app, with its own icon. Nothing to buy, no account to make, no ads. Once it is
+installed it works with no internet at all.
 
-Opening `dist/index.html` off the disk will not work properly. A service worker
-needs a real origin, so use the dev server.
+[Start here](docs/start-here.md) for the install, and
+[how to use it](docs/using-it.md) once you are in.
 
-```bash
-npm run build      # dist/ for the web, artifact/ for the single file version
-npm test           # the merge engine tests
-npm run vendor     # refetch React and the font, only when bumping versions
-```
+## Where your stuff lives
 
-## Deploy it
+On your device, and nowhere else. Nothing is uploaded, nothing is tracked, and
+there is no account attached to any of it.
 
-```bash
-git remote add origin https://github.com/Nokoding/FST.git
-git push -u origin main
-```
+That cuts both ways. If you clear your browser data, it is gone. So either save
+a backup file now and then, which is one tap in Settings, or turn on
+[sync](docs/sync.md) and let it keep a copy in your own Google Drive.
 
-Then turn Pages on once: Settings, Pages, Source, GitHub Actions. It lands at
-https://nokoding.github.io/FST/ and every later push to `main` redeploys it.
+## More
 
-Anything that serves static files works too. Netlify, Vercel, Cloudflare Pages,
-your own box. Build with `npm run build` and serve `dist/`.
+- [Start here](docs/start-here.md), getting it onto your phone or computer.
+- [Using it](docs/using-it.md), pages, counting, the dashboard, backups.
+- [Sync](docs/sync.md), keeping two devices in step.
+- [Host your own copy](docs/hosting.md), if you would rather run it yourself.
+- [Developing](docs/developing.md), the commands, the build, the layout.
+- [How it works inside](docs/architecture.md), for the curious.
 
-Full instructions including installing on a phone are in
-[docs/DEPLOY.md](docs/DEPLOY.md).
+## Open source
 
-## Layout
-
-```
-src/
-  app.jsx       the app. React, no framework, no router
-  sync.js       merge engine and sync providers, plain JS, no JSX
-public/         static shell copied into dist as is
-  vendor/       React and the font, committed so a clone works offline
-scripts/
-  build.js      compiles src into dist and artifact
-  serve.js      dependency free static server for dist
-  vendor.js     refetches the vendored libraries
-worker/         optional Cloudflare Worker, only needed for Discord login
-test/           merge engine tests
-docs/           sync, deploy, and how the thing is put together
-```
-
-`src/sync.js` is deliberately plain JavaScript with no imports. The build glues
-it into the app, and the tests load it directly. Keeping it free of JSX is what
-makes it testable without a bundler.
-
-## Where the data lives
-
-On your device, in localStorage, until you turn on sync. Nothing is uploaded
-anywhere by default and there is no analytics, no telemetry, no accounts.
-
-If you do turn on sync, Google Drive keeps a hidden file in your own Drive that
-only this app can read. The Discord option talks to a worker you deploy
-yourself. Either way the data stays yours.
-
-Clearing browser data wipes the app. Settings has Export a backup for this
-reason. Use it before you accumulate anything you would miss.
-
-## Notes on the design
-
-Counts are an append only event log, not running totals. Every `+` is a record
-with an id. Merging two devices takes the union of their logs, so counting on
-your phone with no signal and on your laptop at the same time cannot lose
-clicks. Names and settings are last write wins on a timestamp instead, because
-merging two different names is not a thing. Details in
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Free, MIT licensed, and the whole thing is in this repo. Fork it, change it,
+run your own. See [developing](docs/developing.md) to get started, or
+[contributing](CONTRIBUTING.md) if you want to send a change back.
 
 ## License
 

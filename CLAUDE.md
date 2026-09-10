@@ -33,9 +33,27 @@ public/vendor/  React and the font, committed on purpose
 scripts/        build, dev server, vendor refresh, icon generator
 test/           merge engine tests
 worker/         optional Cloudflare Worker for Discord login
+docs/           the written docs, see below
 ```
 
 `dist/` and `artifact/` are build output and gitignored. Never commit them.
+
+## The docs
+
+`README.md` and everything in `docs/` up to `hosting.md` are written for a
+person who is not a developer. Plain words, no jargon, no marketing tone, no em
+dashes. Technical detail lives in `developing.md` and `architecture.md` and
+gets linked from a plain sentence rather than explained inline.
+
+```
+README.md             what it is, who it is for, links out. No build commands
+docs/start-here.md    installing it, and the first run
+docs/using-it.md      pages, panels, counting, resets, dashboard, backups
+docs/sync.md          Google Drive and Discord setup, in plain language
+docs/hosting.md       putting your own copy online
+docs/developing.md    commands, build, layout, house rules
+docs/architecture.md  state shape, merge rules, why counts are a log
+```
 
 ## How the build works
 
