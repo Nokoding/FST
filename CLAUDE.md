@@ -194,6 +194,6 @@ settings or `configure-pages` fails with a Not Found.
   compaction step folding events older than the last reset into `base.allTime`
   is the honest fix, and it needs care: compacting on one device while another
   still holds those events would double count them on merge.
-- No per section profile overrides, the one Discord customization not copied.
-- No drag to reorder panels.
+- No per page profile overrides, the one Discord customization not copied.
+- No drag to reorder panels, and no way to move a person to another page.
 - The import error string still says "Panel Count backup".
