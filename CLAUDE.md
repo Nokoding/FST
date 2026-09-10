@@ -18,6 +18,7 @@ npm run build      # dist/ for the web, artifact/ for the single file version
 npm test           # merge engine and state tests
 npm run vendor     # refetch React and the font, only when bumping versions
 python3 scripts/icons.py   # regenerate icons, needs pip install pillow
+node scripts/tap-targets.js  # checks every control is 44x44 to a finger
 ```
 
 Always run `npm test` before committing. CI runs it and refuses to deploy on a
@@ -30,7 +31,7 @@ src/app.jsx     the whole app. React, no framework, no router
 src/sync.js     merge engine and sync providers. Plain JS, no JSX, no imports
 public/         static shell, copied into dist untouched
 public/vendor/  React and the font, committed on purpose
-scripts/        build, dev server, vendor refresh, icon generator
+scripts/        build, dev server, vendor refresh, icons, tap target check
 test/           merge engine tests, and tests for the state shape
 worker/         optional Cloudflare Worker for Discord login
 docs/           the written docs, see below
@@ -181,6 +182,19 @@ That split is worth 10px of header on a phone, 119 down to 109, and nothing on
 a desktop, where the row height comes from the page tabs either way. For scale,
 the header was 95px back when nothing in it was a real target.
 
+`scripts/tap-targets.js` is how you check this. It walks outward from the
+middle of every control and asks the browser what a tap at that point actually
+lands on, so it measures the target a finger gets rather than the size of the
+ink. **It is the source of truth.** Anything that measures the visible box
+instead will call the slim controls failures, and it is wrong about them, which
+is a mistake already made once. If two tools disagree, this one is right.
+
+It drives a real browser through Playwright, which stays out of `package.json`
+under the no dependencies rule, so it is a thing you run by hand and not part
+of `npm test` or CI. The comment at the top of the script says how to run it.
+It exits 1 when something is under 44, and prints the visible size next to the
+tap size so the difference between the two is visible.
+
 Two things to get right if you add a slim control:
 
 - Tap zones must not overlap. A tap in an overlap goes to whichever element is
@@ -221,4 +235,7 @@ settings or `configure-pages` fails with a Not Found.
   still holds those events would double count them on merge.
 - No per page profile overrides, the one Discord customization not copied.
 - No drag to reorder panels, and no way to move a person to another page.
+- `scripts/tap-targets.js` reports two failures on main, both the inline name
+  field on a panel, which is 19px tall on a phone once the panels are narrow.
+  It is a real target that is under 44 and it has not been fixed.
 - The import error string still says "Panel Count backup".

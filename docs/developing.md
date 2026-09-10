@@ -13,7 +13,14 @@ npm run build      # dist/ for the web, artifact/ for the single file version
 npm test           # the merge engine and state tests
 npm run vendor     # refetch React and the font, only when bumping versions
 python3 scripts/icons.py   # regenerate the icons, needs pip install pillow
+node scripts/tap-targets.js  # checks every control is 44x44 to a finger
 ```
+
+`tap-targets.js` drives a real browser and needs Playwright, which is not a
+dependency here, so it is run by hand rather than in CI. The comment at the top
+of the script says how. It is the thing to trust about tap targets, since the
+visible size of a control and the size of its tap target are deliberately not
+the same.
 
 Use the dev server rather than opening `dist/index.html` off the disk. A
 service worker needs a real origin, so the offline half of the app does nothing
@@ -35,6 +42,7 @@ scripts/
   serve.js      dependency free static server
   vendor.js     refetches the vendored libraries
   icons.py      regenerates the icon set
+  tap-targets.js  checks every control is 44x44 to a finger
 test/           tests for sync.js and for the state shape
 worker/         optional Cloudflare Worker, only needed for Discord login
 docs/           these pages
