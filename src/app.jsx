@@ -681,7 +681,7 @@ function useWidth() {
 
 function FriendPanel({
   person, settings, onBump, onEdit, onPhoto,
-  expanded, onSelect, compact, fullscreen, onFullscreen, onClose, onCustomize,
+  expanded, onSelect, compact, last, fullscreen, onFullscreen, onClose, onCustomize,
 }) {
   const fileRef = useRef(null);
   const [pulse, setPulse] = useState(0);
@@ -718,7 +718,9 @@ function FriendPanel({
         cursor: onSelect && !expanded ? "pointer" : "default",
         transition: settings.motion ? "flex 520ms cubic-bezier(.16,1,.3,1)" : "none",
         background: backdrop ? `${wash}, center/cover no-repeat url(${backdrop})` : wash,
-        clipPath: compact && !fullscreen ? TORN_EDGE : "none",
+        /* the tear belongs on the seam between panels, so the last one keeps
+           a straight edge instead of looking ripped off at the screen edge */
+        clipPath: compact && !fullscreen && !last ? TORN_EDGE : "none",
       }}>
 
       <Halftone color={person.theme.to} on={settings.halftone} />
@@ -1006,8 +1008,9 @@ function PanelsView({ people, settings, handlers }) {
   if (settings.transition === "split") {
     return (
       <div style={{ height: "100%", display: "flex", gap: 5, background: INK, padding: 5, position: "relative" }}>
-        {people.map((p) => (
+        {people.map((p, i) => (
           <FriendPanel key={p.id} person={p} settings={settings} compact
+            last={i === people.length - 1}
             expanded={expanded === p.id || people.length === 1}
             onSelect={() => setExpanded(expanded === p.id ? null : p.id)}
             onFullscreen={setFsId} {...handlers} />
@@ -1655,7 +1658,7 @@ export default function PanelCount() {
 
   return (
     <div style={{
-      height: "100dvh", display: "flex", flexDirection: "column",
+      height: "100%", display: "flex", flexDirection: "column",
       background: PAPER, color: INK,
       fontFamily: "ui-sans-serif, system-ui, 'Segoe UI', sans-serif", overflow: "hidden",
     }}>

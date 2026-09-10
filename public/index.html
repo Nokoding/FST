@@ -14,9 +14,11 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 <link rel="icon" href="icons/icon-192.png" />
 <style>
-  html, body { margin: 0; padding: 0; background: #F4F1E8; overscroll-behavior: none; }
+  html, body { margin: 0; padding: 0; height: 100%; background: #F4F1E8; overscroll-behavior: none; }
   body { -webkit-tap-highlight-color: transparent; }
-  #root { height: 100dvh; }
+  /* fixed and pinned to all four edges, so it fills the screen on iPadOS and
+     iOS standalone where a plain height can collapse against the viewport */
+  #root { position: fixed; top: 0; right: 0; bottom: 0; left: 0; }
   #boot {
     height: 100dvh; display: grid; place-items: center;
     font-family: ui-sans-serif, system-ui, sans-serif; color: #0D0D11; font-size: 14px;
