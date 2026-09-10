@@ -15,7 +15,7 @@ replace. See "Storage" below.
 npm install
 npm run dev        # build, then serve dist on localhost:8000
 npm run build      # dist/ for the web, artifact/ for the single file version
-npm test           # merge engine tests, 15 of them
+npm test           # merge engine and state tests
 npm run vendor     # refetch React and the font, only when bumping versions
 python3 scripts/icons.py   # regenerate icons, needs pip install pillow
 ```
@@ -31,7 +31,7 @@ src/sync.js     merge engine and sync providers. Plain JS, no JSX, no imports
 public/         static shell, copied into dist untouched
 public/vendor/  React and the font, committed on purpose
 scripts/        build, dev server, vendor refresh, icon generator
-test/           merge engine tests
+test/           merge engine tests, and tests for the state shape
 worker/         optional Cloudflare Worker for Discord login
 docs/           the written docs, see below
 ```
@@ -125,6 +125,11 @@ secret. The Discord provider talks to `worker/`.
 Claude artifact, and falls back to `localStorage`, which is the real path in the
 installed app. The key is `panelcount:state:v2`, defined at the top of
 `src/app.jsx`.
+
+A new install starts blank. `defaultState()` returns no sections and no people,
+and the app shows a make-your-first-page screen instead of the panels. Anything
+already saved wins over that blank shape, because `migrate()` spreads the saved
+record over the default. There are tests for both in `test/state.test.js`.
 
 Changing that key orphans everyone's data. If the shape changes, extend
 `migrate()` instead. It already carries v1 and v2 records forward.

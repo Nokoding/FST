@@ -142,24 +142,16 @@ function makePerson(sectionId, name, preset) {
   };
 }
 
+/* a new install starts blank. the pages are yours to name, not mine to guess */
 function defaultState() {
-  const s1 = uid();
-  const s2 = uid();
   const stamp = Date.now();
   return {
     version: 3,
     deviceId: uid(),
     events: [],
     tombs: [],
-    sections: [
-      { id: s1, name: "Discord", updatedAt: stamp },
-      { id: s2, name: "Instagram", updatedAt: stamp },
-    ],
-    people: [
-      makePerson(s1, "A", GRADIENT_PRESETS[0]),
-      makePerson(s1, "B", GRADIENT_PRESETS[1]),
-      makePerson(s2, "C", GRADIENT_PRESETS[2]),
-    ],
+    sections: [],
+    people: [],
     settings: {
       transition: "split",
       chart: "pie",
@@ -951,6 +943,37 @@ function Section({ title, hint, children }) {
 }
 
 /* ================================================================== */
+/*  the very first page                                                */
+/* ================================================================== */
+
+function FirstPage({ onCreate }) {
+  const [name, setName] = useState("");
+  const make = (e) => { e.preventDefault(); onCreate(name); setName(""); };
+
+  return (
+    <div style={{ height: "100%", overflowY: "auto", background: PAPER, display: "grid", placeItems: "center", padding: 22 }}>
+      <form onSubmit={make} style={{
+        width: "100%", maxWidth: 420, background: "#fff",
+        border: `3px solid ${INK}`, boxShadow: `10px 10px 0 ${INK}`, padding: "20px 20px 22px",
+      }}>
+        <div className="pc-name" style={{ fontSize: 40, lineHeight: 1, marginBottom: 8 }}>
+          Make your first page
+        </div>
+        <p style={{ fontSize: 14, lineHeight: 1.6, opacity: 0.75, margin: "0 0 16px" }}>
+          A page is a group of people. Everyone you put on it gets their own
+          panel to count on. One page is plenty to start with.
+        </p>
+        <input className="pc-select" autoFocus value={name} placeholder="Friends"
+          aria-label="Name your first page"
+          onChange={(e) => setName(e.target.value)}
+          style={{ width: "100%", marginBottom: 12, fontSize: 15 }} />
+        <InkButton onClick={make}>Make the page</InkButton>
+      </form>
+    </div>
+  );
+}
+
+/* ================================================================== */
 /*  panels view                                                        */
 /* ================================================================== */
 
@@ -1265,7 +1288,8 @@ function SettingsView({ state, setSettings, actions, sectionId, onCustomize, ins
         <h2 className="pc-name" style={{ fontSize: 30, margin: "30px 0 2px" }}>Friends in this section</h2>
         <Row title="Profiles" hint="Open a profile to change its gradient, banner, frame, effect and tags.">
           <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 12 }}>
-            {inSection.length === 0 && <div style={{ fontSize: 13.5, opacity: 0.65 }}>This section is empty.</div>}
+            {!sectionId && <div style={{ fontSize: 13.5, opacity: 0.65 }}>Make a page first and this fills in.</div>}
+            {sectionId && inSection.length === 0 && <div style={{ fontSize: 13.5, opacity: 0.65 }}>Nobody on this page yet.</div>}
             {inSection.map((p) => (
               <div key={p.id} style={{ border: `2px solid ${INK}`, background: "#fff" }}>
                 <div style={{ height: 8, background: gradientCss({ ...p.theme, angle: 90 }) }} />
@@ -1283,7 +1307,7 @@ function SettingsView({ state, setSettings, actions, sectionId, onCustomize, ins
                 </div>
               </div>
             ))}
-            <div><InkButton small onClick={() => actions.addPerson(sectionId)}>Add a friend</InkButton></div>
+            {sectionId && <div><InkButton small onClick={() => actions.addPerson(sectionId)}>Add a friend</InkButton></div>}
           </div>
         </Row>
 
@@ -1603,10 +1627,11 @@ export default function PanelCount() {
   }), []);
 
   const actions = {
-    addSection: () => setState((s) => {
+    addSection: (name) => setState((s) => {
       const id = uid();
       setSectionId(id);
-      return { ...s, sections: [...s.sections, { id, name: "New section", updatedAt: Date.now() }] };
+      setView("panels");
+      return { ...s, sections: [...s.sections, { id, name: (name || "").trim() || "Friends", updatedAt: Date.now() }] };
     }),
     renameSection: (id, name) => setState((s) => ({
       ...s,
@@ -1645,7 +1670,8 @@ export default function PanelCount() {
     wipe: () => {
       const fresh = defaultState();
       setState(fresh);
-      setSectionId(fresh.sections[0].id);
+      setSectionId(null);
+      setView("panels");
       setCustomId(null);
     },
     exportData: () => {
@@ -1688,8 +1714,10 @@ export default function PanelCount() {
       fontFamily: "ui-sans-serif, system-ui, sans-serif" }}>{status}</div>;
   }
 
-  const people = state.people.filter((p) => p.sectionId === sectionId);
+  const activeId = (state.sections.find((s) => s.id === sectionId) || state.sections[0] || {}).id || null;
+  const people = state.people.filter((p) => p.sectionId === activeId);
   const customPerson = state.people.find((p) => p.id === customId) || null;
+  const noPages = state.sections.length === 0;
 
   return (
     <div style={{
@@ -1811,7 +1839,7 @@ export default function PanelCount() {
         <Brand motion={state.settings.motion} />
         <div style={{ display: "flex", gap: 5, overflowX: "auto", flex: 1, minWidth: 120 }}>
           {state.sections.map((s) => (
-            <button key={s.id} type="button" className="pc-tab" data-on={s.id === sectionId} onClick={() => setSectionId(s.id)}>
+            <button key={s.id} type="button" className="pc-tab" data-on={s.id === activeId} onClick={() => setSectionId(s.id)}>
               {s.name}
             </button>
           ))}
@@ -1827,10 +1855,11 @@ export default function PanelCount() {
       {status && <div style={{ background: INK, color: PAPER, fontSize: 12.5, padding: "5px 12px", flexShrink: 0 }}>{status}</div>}
 
       <main style={{ flex: 1, minHeight: 0, position: "relative" }}>
-        {view === "panels" && <PanelsView people={people} settings={state.settings} handlers={handlers} />}
+        {view === "panels" && noPages && <FirstPage onCreate={actions.addSection} />}
+        {view === "panels" && !noPages && <PanelsView people={people} settings={state.settings} handlers={handlers} />}
         {view === "dashboard" && <Dashboard state={state} people={people} setSettings={setSettings} />}
         {view === "settings" && (
-          <SettingsView state={state} setSettings={setSettings} actions={actions} sectionId={sectionId}
+          <SettingsView state={state} setSettings={setSettings} actions={actions} sectionId={activeId}
             onCustomize={setCustomId} installPrompt={!!installEvt} onInstall={install} syncer={syncer} />
         )}
         {view !== "panels" && customPerson && (
