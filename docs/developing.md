@@ -88,7 +88,9 @@ rules.
   written SVG near the top, one function each.
 - **Styling.** One `<style>` block inside the app component, near the bottom.
   The comic button system is the `.pc-btn` family, and everything clickable
-  should use it rather than growing its own look.
+  should use it rather than growing its own look. Every control has a 44 by 44
+  tap target, though not every control is 44 by 44 of ink. Ones you tap rarely
+  use `.pc-btn-slim`, which keeps the target and drops the height.
 - **Merging, storage, sync providers.** `src/sync.js`. The state shape itself,
   `defaultState()` and `migrate()`, is at the top of `src/app.jsx`.
 - **Manifest, service worker, icons, config.** `public/`.

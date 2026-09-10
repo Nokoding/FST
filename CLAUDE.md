@@ -157,6 +157,39 @@ record over the default. There are tests for both in `test/state.test.js`.
 Changing that key orphans everyone's data. If the shape changes, extend
 `migrate()` instead. It already carries v1 and v2 records forward.
 
+## Buttons and tap targets
+
+One system, `.pc-btn` in the style block in `src/app.jsx`. Ink outline, hard
+offset shadow, presses into the page when tapped. Tabs, chart switchers,
+settings controls, the panel plus and minus, the sync pill. `data-on` marks a
+selected one, `data-danger` a destructive one, `.pc-btn-sm` is the compact
+size. Do not give a new control a look of its own.
+
+Every button keeps a `:focus-visible` outline and stops moving under
+`.pc-still`, which the app puts on the root when the animation setting is off,
+and under `prefers-reduced-motion`.
+
+**Every control has a 44 by 44 tap target. Not every control is 44 by 44 of
+ink.** A control tapped over and over should look as big as it is, so the page
+tabs and the new page `+` are 44 on screen. A control tapped once to switch
+context and then left alone can be shorter, with an invisible zone carrying the
+target: give it `.pc-btn-slim`, which shrinks the visible box and centres an
+`::after` of at least 44 square over it. The logo, the sync pill and the
+Panels/Dashboard/Settings switcher are slim on those grounds.
+
+That split is worth 10px of header on a phone, 119 down to 109, and nothing on
+a desktop, where the row height comes from the page tabs either way. For scale,
+the header was 95px back when nothing in it was a real target.
+
+Two things to get right if you add a slim control:
+
+- Tap zones must not overlap. A tap in an overlap goes to whichever element is
+  on top, which is a coin flip to the person tapping. The gap between the two
+  header rows is what keeps them apart, so shrinking it is not free.
+- Test the zone with a real tap rather than reading the CSS. A pseudo element
+  does take the hit and pass it to its button, but writing one that is the
+  wrong size or off centre looks identical on screen.
+
 ## Conventions
 
 - No new dependencies. The only two are Babel, both dev only. The point is that
@@ -166,14 +199,6 @@ Changing that key orphans everyone's data. If the shape changes, extend
   breaks the install silently.
 - The Google OAuth origin is `https://nokoding.github.io` with no `/FST`.
   Browsers match origins, not paths.
-- One button system, `.pc-btn` in the style block in `src/app.jsx`. Ink
-  outline, hard offset shadow, presses into the page when tapped. Tabs, chart
-  switchers, settings controls, the panel plus and minus and the sync pill all
-  use it. `data-on` marks a selected one, `data-danger` a destructive one,
-  `.pc-btn-sm` is the compact size. Do not give a new control its own look.
-  Every button is at least 44 by 44, keeps a `:focus-visible` outline, and
-  stops moving under `.pc-still`, which the app puts on the root when the
-  animation setting is off, and under `prefers-reduced-motion`.
 - Charts are hand written SVG in `src/app.jsx`. There was a chart library once.
   It was 500kb, fought the ink styling and could not be cached for offline.
 - Panels size themselves from a measured width via `ResizeObserver`, not from
