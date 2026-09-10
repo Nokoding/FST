@@ -6,7 +6,7 @@ compatibility_date = "2024-11-01"
 #   npx wrangler kv namespace create PANEL_KV
 [[kv_namespaces]]
 binding = "PANEL_KV"
-id = "PUT_YOUR_KV_NAMESPACE_ID_HERE"
+id = "fc71690e520d4517a06a2bda12c74814"
 
 [vars]
 # Where your app is hosted, no trailing slash.

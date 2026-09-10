@@ -6,5 +6,5 @@ window.PANEL_COUNT_CONFIG = {
   googleClientId: "884382366551-b7q8mqodcdop788i9tu8ah9unahlklit.apps.googleusercontent.com",
 
   // Your deployed Cloudflare Worker URL, no trailing slash. Only for Discord login.
-  serverUrl: "",
+  serverUrl: "https://fst.nokodash311.workers.dev",
 };
