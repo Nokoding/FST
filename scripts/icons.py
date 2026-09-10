@@ -2,16 +2,22 @@
 """
 Regenerates public/icons.
 
-Three comic panels torn apart from one collision point, inside a rounded panel
-box. The geometry is computed once and emitted as both PNG and SVG, so the
-vector source and the exported bitmaps cannot drift apart.
+Three comic panels torn apart from one collision point, running to the edge of
+the canvas. The geometry is computed once and emitted as both PNG and SVG, so
+the vector source and the exported bitmaps cannot drift apart.
 
     pip install pillow
     python3 scripts/icons.py
 
 Design notes:
-  - proportions were measured off the reference render: box at 66% of the
-    canvas, corner radius 15% of the box, border 4% of the box
+  - full bleed on purpose. Apple's guidance is to not bake a rounded rectangle
+    into the source, because the system applies its own shape and derives the
+    dark, tinted and clear variants from what you give it. An icon with its own
+    rounded box gets rounded twice, and the derived variants have no clear
+    figure to pull out of a flat field. Android's adaptive icons want edge to
+    edge artwork for the same reason
+  - it still looks like a rounded panel on the home screen, because the shape
+    comes from the operating system rather than from the artwork
   - flat fills only, no texture. Anything finer than a few pixels turns to
     mush by 192px, and an icon lives its whole life below that
   - no baked gloss or highlight. iOS and Android apply their own treatment, and
@@ -92,15 +98,10 @@ def tear(cx, cy, ex, ey, amp, seed):
 
 def layout(canvas, scale=1.0):
     """all measurements in pixels for a given canvas size"""
-    box = canvas * BOX * scale
+    box = canvas * scale
     ox = (canvas - box) / 2
-    u = box / (REF * BOX)                    # one 512-unit in pixels
-    border = box * BORDER
-    radius = box * RADIUS
-    outer = (ox, ox, ox + box, ox + box)
-    pad = border
-    inner = (ox + pad, ox + pad, ox + box - pad, ox + box - pad)
-    return outer, inner, radius, border, u
+    u = box / REF
+    return (ox, ox, ox + box, ox + box), u
 
 
 def regions(inner, u):
@@ -136,43 +137,23 @@ def regions(inner, u):
 def png(size, scale=1.0):
     from PIL import Image, ImageDraw
     S = size * SS
-    outer, inner, radius, border, u = layout(S, scale)
-
+    area, u = layout(S, scale)
     img = Image.new("RGB", (S, S), hex_rgb(PAPER))
     d = ImageDraw.Draw(img)
-    d.rounded_rectangle(list(outer), radius=radius, fill=hex_rgb(INK))
-
-    # panels live on their own layer, then get clipped to the rounded interior
-    layer = Image.new("RGB", (S, S), hex_rgb(PAPER))
-    dl = ImageDraw.Draw(layer)
-    for color, poly in regions(inner, u):
-        dl.polygon(poly, fill=hex_rgb(color), outline=hex_rgb(INK), width=max(1, int(STROKE * u)))
-
-    mask = Image.new("L", (S, S), 0)
-    ImageDraw.Draw(mask).rounded_rectangle(list(inner), radius=max(1, radius - border), fill=255)
-    img.paste(layer, (0, 0), mask)
-
+    for color, poly in regions(area, u):
+        d.polygon(poly, fill=hex_rgb(color), outline=hex_rgb(INK), width=max(1, int(STROKE * u)))
     return img.resize((size, size), Image.LANCZOS)
 
 
 def svg():
-    outer, inner, radius, border, u = layout(REF)
-    ox, oy, ox2, oy2 = outer
-    ix, iy, ix2, iy2 = inner
+    area, u = layout(REF)
     parts = [
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">',
-        '  <defs>',
-        f'    <clipPath id="panel"><rect x="{ix:.1f}" y="{iy:.1f}" width="{ix2 - ix:.1f}" '
-        f'height="{iy2 - iy:.1f}" rx="{max(1, radius - border):.1f}"/></clipPath>',
-        '  </defs>',
         f'  <rect width="512" height="512" fill="{PAPER}"/>',
-        f'  <rect x="{ox:.1f}" y="{oy:.1f}" width="{ox2 - ox:.1f}" height="{oy2 - oy:.1f}" '
-        f'rx="{radius:.1f}" fill="{INK}"/>',
-        f'  <g clip-path="url(#panel)" stroke="{INK}" stroke-width="{STROKE:.0f}" stroke-linejoin="round">',
-        f'    <rect x="{ix:.1f}" y="{iy:.1f}" width="{ix2 - ix:.1f}" height="{iy2 - iy:.1f}" '
-        f'fill="{PAPER}" stroke="none"/>',
+        f'  <g clip-path="url(#edge)" stroke="{INK}" stroke-width="{STROKE:.0f}" stroke-linejoin="round">',
+        '    <clipPath id="edge"><rect width="512" height="512"/></clipPath>',
     ]
-    for color, poly in regions(inner, u):
+    for color, poly in regions(area, u):
         pts = " ".join(f"{x:.1f},{y:.1f}" for x, y in poly)
         parts.append(f'    <polygon points="{pts}" fill="{color}"/>')
     parts += ["  </g>", "</svg>", ""]
@@ -184,8 +165,9 @@ def main():
     made = []
     for size in (192, 512):
         p = os.path.join(OUT, f"icon-{size}.png"); png(size).save(p); made.append(p)
-    # Android crops to a circle, so shrink the drawing into the safe zone
-    p = os.path.join(OUT, "maskable-512.png"); png(512, 0.80).save(p); made.append(p)
+    # full bleed is already the right shape for a maskable icon: a circular
+    # crop trims the corners and leaves the collision point centred
+    p = os.path.join(OUT, "maskable-512.png"); png(512).save(p); made.append(p)
     p = os.path.join(OUT, "apple-touch-icon.png"); png(180).save(p); made.append(p)
     p = os.path.join(OUT, "icon.svg")
     with open(p, "w") as f:
