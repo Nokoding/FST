@@ -1,4 +1,7 @@
-# FST - Friendship Tracker
+<h1>
+  <img src="public/icons/icon-512.png" width="44" alt="">
+  &nbsp;FST &nbsp;|&nbsp; friendship tracker
+</h1>
 
 Track quality time with a small number of people. Everyone gets a comic panel,
 a `+` and a `-`, and a profile you can style. The dashboard turns those counts
