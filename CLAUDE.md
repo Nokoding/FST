@@ -83,6 +83,18 @@ A page can be made from the `+` at the end of the tab strip in the header
 switches to the new page, and an empty page asks for its first person rather
 than sitting there empty.
 
+## The first run walkthrough
+
+Five steps, shown once, on a device that has never had anything in it. The
+seen flag is `panelcount:tour:v1` in `localStorage`, never in the synced state,
+because it is about this device and not about the person. Anyone who already
+has pages or people gets the flag set for them at load and never sees it, which
+is what keeps it away from someone updating from an older version. Settings,
+Help, runs it again.
+
+The first two steps advance on their own when you actually make the page and
+add the person, tracked by `tourMark` against the step it started on.
+
 ## The one thing you must not break
 
 Counts are an append only event log, not running totals. Each `+` or `-`

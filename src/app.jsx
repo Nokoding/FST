@@ -1315,6 +1315,11 @@ function SettingsView({ state, setSettings, actions, sectionId, onCustomize, ins
         <h2 className="pc-name" style={{ fontSize: 30, margin: "30px 0 2px" }}>Sync</h2>
         <SyncSettings syncer={syncer} />
 
+        <h2 className="pc-name" style={{ fontSize: 30, margin: "30px 0 2px" }}>Help</h2>
+        <Row title="Show me around" hint="The walkthrough from the first run. Pages, panels, counting, and where the rest of it is.">
+          <InkButton small onClick={actions.showTour}>Run the walkthrough</InkButton>
+        </Row>
+
         <h2 className="pc-name" style={{ fontSize: 30, margin: "30px 0 2px" }}>Data</h2>
         <Row title="Back it up" hint="Saves a file with every profile, picture and count. Import it on another device to move everything over.">
           <InkButton small onClick={actions.exportData}>Export a backup</InkButton>
@@ -1549,6 +1554,71 @@ function Brand({ motion }) {
 }
 
 /* ================================================================== */
+/*  the first run walkthrough                                          */
+/* ================================================================== */
+
+/* device local on purpose. whether you have seen the tour is about this
+   phone, not about you, so it stays out of the synced state */
+const TOUR_KEY = "panelcount:tour:v1";
+
+const tourSeen = () => {
+  try { return localStorage.getItem(TOUR_KEY) === "done"; } catch (e) { return true; }
+};
+const markTourSeen = () => {
+  try { localStorage.setItem(TOUR_KEY, "done"); } catch (e) { /* nothing to do */ }
+};
+
+const TOUR_STEPS = [
+  {
+    title: "Start with a page",
+    body: "A page is a group of people. Name it after wherever they live in your life, or just call it Friends. Make one and this follows along.",
+  },
+  {
+    title: "Now add a person",
+    body: "Everyone you add gets a panel of their own, with their name and their own colors. Add one. You can pile on more whenever.",
+  },
+  {
+    title: "Tap + when you see them",
+    body: "That is the whole job. Minus takes back a tap you did not mean. The big number is this period, and it starts again from zero every week until you change that in Settings. The all time total never resets.",
+  },
+  {
+    title: "The dashboard reads it back",
+    body: "It is up in the corner. Six ways to draw the same counts, and the gap between the person you see most and the person you see least.",
+  },
+  {
+    title: "One last thing",
+    body: "This lives on your device and works with no internet at all. Clearing your browser wipes it, so save a backup from Settings, or switch on sync and it keeps a copy in your own Google Drive.",
+  },
+];
+
+function Tour({ step, onNext, onSkip }) {
+  const last = step === TOUR_STEPS.length - 1;
+  const { title, body } = TOUR_STEPS[step];
+
+  return (
+    <div style={{
+      position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 15,
+      display: "flex", justifyContent: "center", padding: 12, pointerEvents: "none",
+    }}>
+      <div role="dialog" aria-label="Getting started" style={{
+        width: "100%", maxWidth: 460, pointerEvents: "auto", background: PAPER,
+        border: `3px solid ${INK}`, boxShadow: `8px 8px 0 ${INK}`, padding: "14px 15px 15px",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
+          <div className="pc-name" style={{ fontSize: 26, lineHeight: 1.05 }}>{title}</div>
+          <span style={{ fontSize: 12, opacity: 0.6, flexShrink: 0 }}>{step + 1} of {TOUR_STEPS.length}</span>
+        </div>
+        <p style={{ fontSize: 13.5, lineHeight: 1.6, margin: "7px 0 13px" }}>{body}</p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <InkButton small active onClick={onNext}>{last ? "Start counting" : "Next"}</InkButton>
+          {!last && <InkButton small onClick={onSkip}>Skip</InkButton>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ================================================================== */
 /*  the page strip                                                     */
 /* ================================================================== */
 
@@ -1598,6 +1668,8 @@ export default function PanelCount() {
   const [status, setStatus] = useState("Loading");
   const [customId, setCustomId] = useState(null);
   const [installEvt, setInstallEvt] = useState(null);
+  const [tour, setTour] = useState(null);
+  const tourMark = useRef({ step: -1, sections: 0, people: 0 });
   const saveTimer = useRef(null);
   const importRef = useRef(null);
   const syncer = useSync(state, setState);
@@ -1615,9 +1687,27 @@ export default function PanelCount() {
       setState(fresh);
       setSectionId(fresh.sections[0]?.id || null);
       setStatus("");
+      /* anyone who already has something has been using this for a while and
+         does not need showing around. mark it seen rather than show it */
+      if (!tourSeen()) {
+        if (fresh.sections.length || fresh.people.length) markTourSeen();
+        else setTour(0);
+      }
     })();
     return () => { alive = false; };
   }, []);
+
+  /* the first two steps are things to do, so doing them moves the tour on */
+  useEffect(() => {
+    if (tour === null || !state) return;
+    const mark = tourMark.current;
+    if (mark.step !== tour) {
+      tourMark.current = { step: tour, sections: state.sections.length, people: state.people.length };
+      return;
+    }
+    if (tour === 0 && state.sections.length > mark.sections) setTour(1);
+    if (tour === 1 && state.people.length > mark.people) setTour(2);
+  }, [state, tour]);
 
   useEffect(() => {
     const onPrompt = (e) => { e.preventDefault(); setInstallEvt(e); };
@@ -1704,6 +1794,7 @@ export default function PanelCount() {
       }),
     })),
     resetNow: () => setState((s) => archivePeriod(s)),
+    showTour: () => { setView("panels"); setTour(0); },
     wipe: () => {
       const fresh = defaultState();
       setState(fresh);
@@ -1738,6 +1829,8 @@ export default function PanelCount() {
     };
     r.readAsText(file);
   };
+
+  const endTour = () => { markTourSeen(); setTour(null); };
 
   const install = async () => {
     if (!installEvt) return;
@@ -1945,6 +2038,10 @@ export default function PanelCount() {
         {view !== "panels" && customPerson && (
           <CustomizeDrawer person={customPerson} settings={state.settings} onEdit={handlers.onEdit}
             onPhoto={handlers.onPhoto} onClose={() => setCustomId(null)} />
+        )}
+        {tour !== null && (
+          <Tour step={tour} onSkip={endTour}
+            onNext={() => (tour + 1 < TOUR_STEPS.length ? setTour(tour + 1) : endTour())} />
         )}
       </main>
 
