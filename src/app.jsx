@@ -1492,6 +1492,41 @@ function SyncSettings({ syncer }) {
   );
 }
 
+
+const BRAND_FX = ["pc-b-flip", "pc-b-tear", "pc-b-stamp", "pc-b-slide", "pc-b-glitch", "pc-b-type"];
+
+function Brand({ motion }) {
+  const [open, setOpen] = useState(false);
+  const [fx, setFx] = useState(BRAND_FX[0]);
+  const [run, setRun] = useState(0);
+
+  const toggle = () => {
+    // a different transition every time, never the same one twice in a row
+    const pool = BRAND_FX.filter((f) => f !== fx);
+    setFx(pool[Math.floor(Math.random() * pool.length)]);
+    setRun((k) => k + 1);
+    setOpen((o) => !o);
+  };
+
+  return (
+    <button type="button" onClick={toggle} className="pc-brand"
+      title={open ? "Back to FST" : "What FST stands for"}
+      aria-label={open ? "Friendship Tracker, tap to shorten" : "FST, tap to expand"}>
+      <span key={run} className={motion ? fx : ""} style={{ display: "inline-block" }}>
+        {open ? (
+          <span className="pc-name" style={{ fontSize: 13.5, lineHeight: 1.04, display: "block" }}>
+            Friendship<br />Tracker
+          </span>
+        ) : (
+          <span className="pc-name" style={{ fontSize: 25, lineHeight: 1.12, display: "block" }}>
+            FST
+          </span>
+        )}
+      </span>
+    </button>
+  );
+}
+
 /* ================================================================== */
 /*  app                                                                */
 /* ================================================================== */
@@ -1718,6 +1753,39 @@ export default function PanelCount() {
         .pc-spin { animation: pcSpin 9s linear infinite; }
         @keyframes pcSpin { to { transform: rotate(360deg); } }
         @keyframes pcBlink { 0%,100% { opacity: 1; } 50% { opacity: .2; } }
+        .pc-brand {
+          font: inherit; background: none; border: none; padding: 0; margin-right: 6px;
+          color: ${INK}; cursor: pointer; text-align: left; min-width: 84px;
+          perspective: 400px; flex-shrink: 0;
+        }
+        .pc-brand:focus-visible { outline: 3px solid #38BDF8; outline-offset: 3px; }
+        .pc-b-flip { animation: pcBFlip 420ms cubic-bezier(.16,1,.3,1); }
+        @keyframes pcBFlip { from { transform: rotateX(90deg); opacity: .1; } to { transform: none; opacity: 1; } }
+        .pc-b-tear { animation: pcBTear 380ms cubic-bezier(.16,1,.3,1); }
+        @keyframes pcBTear {
+          from { clip-path: polygon(0 0, 6% 0, 2% 20%, 7% 40%, 1% 60%, 6% 80%, 2% 100%, 0 100%); }
+          to { clip-path: polygon(0 0, 100% 0, 100% 20%, 100% 40%, 100% 60%, 100% 80%, 100% 100%, 0 100%); }
+        }
+        .pc-b-stamp { animation: pcBStamp 380ms cubic-bezier(.2,1.3,.4,1); }
+        @keyframes pcBStamp {
+          0% { transform: scale(1.7) rotate(-7deg); opacity: 0; }
+          60% { transform: scale(.93) rotate(2deg); opacity: 1; }
+          100% { transform: none; }
+        }
+        .pc-b-slide { animation: pcBSlide 340ms cubic-bezier(.16,1,.3,1); }
+        @keyframes pcBSlide { from { transform: translateY(-115%); opacity: 0; } to { transform: none; opacity: 1; } }
+        .pc-b-glitch { animation: pcBGlitch 380ms steps(4); }
+        @keyframes pcBGlitch {
+          0% { transform: translateX(-7px) skewX(-10deg); opacity: .2; }
+          40% { transform: translateX(6px) skewX(8deg); opacity: .9; }
+          70% { transform: translateX(-3px) skewX(-3deg); }
+          100% { transform: none; opacity: 1; }
+        }
+        .pc-b-type { animation: pcBType 400ms steps(9); }
+        @keyframes pcBType { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+        @media (prefers-reduced-motion: reduce) {
+          .pc-b-flip, .pc-b-tear, .pc-b-stamp, .pc-b-slide, .pc-b-glitch, .pc-b-type { animation: none !important; }
+        }
         .pc-tape { position: absolute; width: 52px; height: 20px; background: rgba(255,255,255,.62); border: 1.5px solid rgba(13,13,17,.4); z-index: 3; }
         @keyframes pcPop { 0% { transform: scale(1); } 38% { transform: scale(1.28) rotate(-3deg); } 100% { transform: scale(1); } }
         .pc-pop { animation: pcPop 340ms cubic-bezier(.2,1.4,.4,1); }
@@ -1740,7 +1808,7 @@ export default function PanelCount() {
         gap: 10, alignItems: "center", flexWrap: "wrap", flexShrink: 0,
         paddingTop: "max(9px, env(safe-area-inset-top))",
       }}>
-        <div className="pc-name" style={{ fontSize: 25, marginRight: 4 }}>Panel Count</div>
+        <Brand motion={state.settings.motion} />
         <div style={{ display: "flex", gap: 5, overflowX: "auto", flex: 1, minWidth: 120 }}>
           {state.sections.map((s) => (
             <button key={s.id} type="button" className="pc-tab" data-on={s.id === sectionId} onClick={() => setSectionId(s.id)}>
