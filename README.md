@@ -1,6 +1,6 @@
 <h1>
   <img src="public/icons/icon-512.png" width="44" alt="">
-  &nbsp;FST &nbsp;|&nbsp; Friendship Tracker
+  &nbsp;FST &nbsp;-&nbsp; Friendship Tracker
 </h1>
 
 Track quality time with a small number of people. Everyone gets a comic panel,
