@@ -512,14 +512,9 @@ const TORN_EDGE =
 
 function InkButton({ children, onClick, active, small, title, danger }) {
   return (
-    <button type="button" title={title} onClick={onClick} className="pc-ink-btn"
-      style={{
-        padding: small ? "5px 10px" : "9px 16px",
-        fontSize: small ? 12 : 14,
-        background: active ? INK : "transparent",
-        color: active ? PAPER : danger ? "#F43F5E" : INK,
-        borderColor: danger ? "#F43F5E" : INK,
-      }}>
+    <button type="button" title={title} onClick={onClick}
+      className={small ? "pc-btn pc-btn-sm" : "pc-btn"}
+      data-on={active ? "true" : undefined} data-danger={danger ? "true" : undefined}>
       {children}
     </button>
   );
@@ -598,7 +593,7 @@ function Avatar({ person, size, onPick, motion }) {
         </>
       )}
       <button type="button" onClick={(e) => { e.stopPropagation(); onPick && onPick(); }}
-        title="Change picture" aria-label="Change picture"
+        title="Change picture" aria-label="Change picture" className="pc-avatar"
         style={{
           width: "100%", height: "100%",
           border: `3px solid ${INK}`,
@@ -719,12 +714,12 @@ function FriendPanel({
       <Effect kind={person.effect} color={person.theme.to} on={settings.motion} />
 
       {onFullscreen && tier >= 1 && (
-        <button type="button" className="pc-corner" title={`Open ${person.name} full screen`}
+        <button type="button" className="pc-btn pc-corner" title={`Open ${person.name} full screen`}
           aria-label={`Open ${person.name} full screen`}
           onClick={(e) => { e.stopPropagation(); onFullscreen(person.id); }}>&#9974;</button>
       )}
       {onClose && (
-        <button type="button" className="pc-corner" title="Back to panels" aria-label="Back to panels"
+        <button type="button" className="pc-btn pc-corner" title="Back to panels" aria-label="Back to panels"
           onClick={(e) => { e.stopPropagation(); onClose(); }}>&#10005;</button>
       )}
 
@@ -777,10 +772,12 @@ function FriendPanel({
           {person.count}
         </div>
 
-        <div style={{ display: "flex", gap: tier >= 2 ? 8 : 5 }} onClick={(e) => e.stopPropagation()}>
-          <button type="button" className={tier >= 2 ? "pc-round" : "pc-round pc-round-sm"}
+        {/* stacked in the narrowest panels, where two 44px buttons will not sit side by side */}
+        <div onClick={(e) => e.stopPropagation()}
+          style={{ display: "flex", gap: tier >= 2 ? 8 : 5, flexDirection: tier === 0 ? "column" : "row" }}>
+          <button type="button" className={tier >= 2 ? "pc-btn pc-round" : "pc-btn pc-round pc-round-sm"}
             onClick={() => bump(-1)} aria-label={`Subtract from ${person.name}`}>&minus;</button>
-          <button type="button" className={tier >= 2 ? "pc-round" : "pc-round pc-round-sm"}
+          <button type="button" className={tier >= 2 ? "pc-btn pc-round" : "pc-btn pc-round pc-round-sm"}
             onClick={() => bump(1)} aria-label={`Add to ${person.name}`}>+</button>
         </div>
 
@@ -814,11 +811,9 @@ function FriendPanel({
 function GradientSwatch({ theme, active, onClick, label }) {
   return (
     <button type="button" onClick={onClick} title={label} aria-label={label}
-      style={{
-        width: 74, height: 46, cursor: "pointer", background: gradientCss(theme),
-        border: active ? `4px solid ${INK}` : `2px solid ${rgba(INK, 0.35)}`,
-        boxShadow: active ? `4px 4px 0 ${INK}` : "none",
-      }} />
+      className="pc-btn pc-swatch" data-on={active ? "true" : undefined}
+      aria-pressed={active ? "true" : "false"}
+      style={{ background: gradientCss(theme), borderColor: active ? INK : rgba(INK, 0.35) }} />
   );
 }
 
@@ -876,7 +871,7 @@ function CustomizeDrawer({ person, onEdit, onPhoto, onClose, settings }) {
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
             {SWATCHES.map((c) => (
               <button key={c} type="button" onClick={() => setTheme({ to: c })} aria-label={`Set second color to ${c}`}
-                style={{ width: 24, height: 24, background: c, border: `2px solid ${INK}`, cursor: "pointer" }} />
+                className="pc-btn pc-chip"><span style={{ background: c }} /></button>
             ))}
           </div>
         </Section>
@@ -1041,17 +1036,19 @@ function PanelsView({ people, settings, handlers, pageName, onAddPerson }) {
       <div key={`${current.id}-${ripKey}`} className={settings.motion ? anim : ""} style={{ height: "100%" }}>
         <FriendPanel person={current} settings={settings} expanded onFullscreen={setFsId} {...handlers} />
       </div>
-      <button type="button" className="pc-nav" style={{ left: 14 }} onClick={() => move(-1)} aria-label="Previous friend">&#8592;</button>
-      <button type="button" className="pc-nav" style={{ right: 14 }} onClick={() => move(1)} aria-label="Next friend">&#8594;</button>
+      <button type="button" className="pc-btn pc-nav" style={{ left: 14 }} onClick={() => move(-1)} aria-label="Previous friend">&#8592;</button>
+      <button type="button" className="pc-btn pc-nav" style={{ right: 14 }} onClick={() => move(1)} aria-label="Next friend">&#8594;</button>
       <div style={{ position: "absolute", bottom: 14, left: 0, right: 0, display: "flex", justifyContent: "center", gap: 7 }}>
         {people.map((p, i) => (
-          <button key={p.id} type="button" onClick={() => { setIndex(i); setRipKey((k) => k + 1); }}
-            aria-label={`Go to ${p.name}`}
-            style={{
-              width: i === index ? 26 : 11, height: 11, border: `2px solid ${INK}`,
-              background: i === index ? p.theme.to : PAPER, cursor: "pointer",
+          <button key={p.id} type="button" className="pc-dot" aria-label={`Go to ${p.name}`}
+            aria-current={i === index ? "true" : undefined}
+            onClick={() => { setIndex(i); setRipKey((k) => k + 1); }}>
+            <span style={{
+              width: i === index ? 26 : 11,
+              background: i === index ? p.theme.to : PAPER,
               transition: settings.motion ? "width 260ms" : "none",
             }} />
+          </button>
         ))}
       </div>
       {drawer}
@@ -1302,9 +1299,11 @@ function SettingsView({ state, setSettings, actions, sectionId, onCustomize, ins
                     <InkButton small onClick={() => onCustomize(p.id)}>Customize</InkButton>
                     <InkButton small danger onClick={() => actions.deletePerson(p.id)}>Remove</InkButton>
                   </div>
-                  <div style={{ fontSize: 12.5, opacity: 0.7 }}>
-                    {p.count} this period, {p.allTime} all time
-                    <button type="button" className="pc-link" onClick={() => actions.zeroPerson(p.id)}>zero the period</button>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+                    <span style={{ fontSize: 12.5, opacity: 0.7 }}>
+                      {p.count} this period, {p.allTime} all time
+                    </span>
+                    <InkButton small onClick={() => actions.zeroPerson(p.id)}>Zero the period</InkButton>
                   </div>
                 </div>
               </div>
@@ -1443,13 +1442,9 @@ function SyncPill({ sync, linked, onClick }) {
   const [label, color] = map[sync.phase] || map.idle;
   return (
     <button type="button" onClick={onClick} title={sync.error || "Sync now"}
-      style={{
-        font: "inherit", fontSize: 12, fontWeight: 700, padding: "5px 10px",
-        border: `2px solid ${INK}`, background: color, color: INK, cursor: "pointer",
-        display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
-      }}>
-      <span style={{
-        width: 8, height: 8, borderRadius: "50%", background: INK,
+      className="pc-btn pc-btn-sm" style={{ background: color }}>
+      <span className="pc-pill-dot" style={{
+        width: 8, height: 8, borderRadius: "50%", background: INK, flexShrink: 0,
         animation: sync.phase === "syncing" ? "pcBlink 1s infinite" : "none",
       }} />
       {label}
@@ -1570,7 +1565,7 @@ function PageStrip({ sections, activeId, onPick, onCreate }) {
   return (
     <div style={{ display: "flex", gap: 5, overflowX: "auto", flex: 1, minWidth: 120, alignItems: "center" }}>
       {sections.map((s) => (
-        <button key={s.id} type="button" className="pc-tab" data-on={s.id === activeId} onClick={() => onPick(s.id)}>
+        <button key={s.id} type="button" className="pc-btn pc-tab" data-on={s.id === activeId} onClick={() => onPick(s.id)}>
           {s.name}
         </button>
       ))}
@@ -1582,10 +1577,10 @@ function PageStrip({ sections, activeId, onPick, onCreate }) {
           <input ref={inputRef} className="pc-tab-input" value={name} placeholder="New page"
             aria-label="Name for the new page" onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Escape") stop(); }} />
-          <button type="submit" className="pc-tab" data-on="true">Add</button>
+          <button type="submit" className="pc-btn pc-tab" data-on="true">Add</button>
         </form>
       ) : (
-        <button type="button" className="pc-tab pc-tab-add" onClick={() => setNaming(true)}
+        <button type="button" className="pc-btn pc-tab pc-tab-add" onClick={() => setNaming(true)}
           title="Make a new page" aria-label="Make a new page">+</button>
       )}
     </div>
@@ -1763,7 +1758,7 @@ export default function PanelCount() {
   const noPages = state.sections.length === 0;
 
   return (
-    <div style={{
+    <div className={state.settings.motion ? "" : "pc-still"} style={{
       height: "100%", display: "flex", flexDirection: "column",
       background: PAPER, color: INK,
       fontFamily: "ui-sans-serif, system-ui, 'Segoe UI', sans-serif", overflow: "hidden",
@@ -1776,40 +1771,71 @@ export default function PanelCount() {
           letter-spacing: .5px; border: none; background: transparent; outline: none;
         }
         .pc-name:focus { background: rgba(255,255,255,.55); }
-        .pc-ink-btn { font: inherit; font-weight: 700; border: 2px solid; cursor: pointer; border-radius: 0; }
-        .pc-ink-btn:active { transform: translate(2px,2px); }
-        .pc-ink-btn:focus-visible { outline: 3px solid #38BDF8; outline-offset: 2px; }
-        .pc-round {
-          width: 52px; height: 52px; font-size: 27px; font-weight: 700; line-height: 1;
-          border: 3px solid ${INK}; background: ${PAPER}; color: ${INK};
-          cursor: pointer; box-shadow: 4px 4px 0 ${INK}; transition: transform 90ms, box-shadow 90ms;
+        .pc-avatar:focus-visible { outline: 3px solid #38BDF8; outline-offset: 4px; }
+        /* one button system for the whole app: ink outline, hard offset
+           shadow, and it presses into the page when you tap it. Everything
+           clickable uses this rather than growing a look of its own. */
+        .pc-btn {
+          font: inherit; font-weight: 700; font-size: 13.5px; line-height: 1;
+          display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+          min-height: 44px; min-width: 44px; padding: 10px 15px;
+          border: 3px solid ${INK}; border-radius: 0;
+          background: ${PAPER}; color: ${INK}; box-shadow: 4px 4px 0 ${INK};
+          cursor: pointer; white-space: nowrap; text-align: center;
+          transition: transform 90ms, box-shadow 90ms;
+          -webkit-tap-highlight-color: transparent;
         }
-        .pc-round:active { transform: translate(4px,4px); box-shadow: 0 0 0 ${INK}; }
-        .pc-round:focus-visible { outline: 3px solid #38BDF8; outline-offset: 3px; }
-        .pc-round-sm { width: 34px; height: 34px; font-size: 18px; box-shadow: 3px 3px 0 ${INK}; border-width: 2px; }
+        .pc-btn:active { transform: translate(4px,4px); box-shadow: 0 0 0 ${INK}; }
+        .pc-btn:focus-visible { outline: 3px solid #38BDF8; outline-offset: 3px; }
+        .pc-btn[data-on="true"] { background: ${INK}; color: ${PAPER}; }
+        /* danger keeps ink text, since rose on paper is too weak to read */
+        .pc-btn[data-danger="true"] { border-color: #F43F5E; box-shadow: 4px 4px 0 #F43F5E; }
+        .pc-btn[data-danger="true"]:active { box-shadow: 0 0 0 #F43F5E; }
+        .pc-btn[data-danger="true"][data-on="true"] { background: #F43F5E; color: ${INK}; }
+        .pc-btn-sm { font-size: 12.5px; padding: 8px 12px; border-width: 2px; box-shadow: 3px 3px 0 ${INK}; }
+        .pc-btn-sm:active { transform: translate(3px,3px); }
+        .pc-btn-sm[data-danger="true"] { box-shadow: 3px 3px 0 #F43F5E; }
+        .pc-round {
+          width: 52px; height: 52px; font-size: 27px; padding: 0;
+          border-width: 3px; box-shadow: 4px 4px 0 ${INK};
+        }
+        .pc-round-sm { width: 44px; height: 44px; font-size: 21px; box-shadow: 3px 3px 0 ${INK}; }
         .pc-nav {
           position: absolute; top: 50%; transform: translateY(-50%);
-          width: 44px; height: 60px; font-size: 22px; cursor: pointer;
-          border: 3px solid ${INK}; background: ${PAPER}; color: ${INK}; z-index: 4;
+          width: 44px; height: 60px; font-size: 22px; padding: 0; z-index: 4;
         }
+        .pc-nav:active { transform: translateY(-50%) translate(4px,4px); }
         .pc-corner {
           position: absolute; top: 9px; right: 9px; z-index: 5;
-          width: 34px; height: 34px; font-size: 15px; line-height: 1;
-          border: 2px solid ${INK}; background: ${PAPER}; color: ${INK};
-          cursor: pointer; box-shadow: 3px 3px 0 ${INK};
+          width: 44px; height: 44px; font-size: 17px; padding: 0;
+          box-shadow: 3px 3px 0 ${INK};
         }
-        .pc-corner:active { transform: translate(3px,3px); box-shadow: 0 0 0 ${INK}; }
-        .pc-select { font: inherit; padding: 7px 10px; border: 2px solid ${INK}; background: #fff; color: ${INK}; border-radius: 0; }
-        .pc-link { background: none; border: none; color: ${INK}; text-decoration: underline; cursor: pointer; font: inherit; font-size: 12.5px; margin-left: 10px; padding: 0; }
-        .pc-tab { font: inherit; font-weight: 700; font-size: 13.5px; padding: 6px 13px; border: 2px solid ${INK}; background: transparent; color: ${INK}; cursor: pointer; white-space: nowrap; }
-        .pc-tab[data-on="true"] { background: ${INK}; color: ${PAPER}; }
-        .pc-tab-add { font-size: 17px; line-height: 1; padding: 4px 11px; flex-shrink: 0; }
+        .pc-dot { background: none; border: none; padding: 17px 3px; cursor: pointer; line-height: 0; }
+        .pc-dot:focus-visible { outline: 3px solid #38BDF8; outline-offset: 1px; }
+        .pc-dot span { display: block; height: 11px; border: 2px solid ${INK}; }
+        .pc-swatch { padding: 0; min-width: 0; min-height: 0; width: 74px; height: 46px; box-shadow: none; border-width: 2px; }
+        .pc-swatch[data-on="true"] { border-width: 4px; box-shadow: 4px 4px 0 ${INK}; }
+        .pc-chip { width: 44px; height: 44px; padding: 10px; background: none; border: none; box-shadow: none; }
+        .pc-chip span { display: block; width: 100%; height: 100%; border: 2px solid ${INK}; }
+        .pc-select {
+          font: inherit; padding: 9px 11px; min-height: 44px; border: 2px solid ${INK};
+          background: #fff; color: ${INK}; border-radius: 0;
+        }
+        .pc-select:focus-visible { outline: 3px solid #38BDF8; outline-offset: 2px; }
+        .pc-tab { flex-shrink: 0; }
+        .pc-tab-add { font-size: 20px; padding: 10px 14px; }
         .pc-tab-input {
-          font: inherit; font-weight: 700; font-size: 13.5px; width: 128px;
-          padding: 6px 10px; border: 2px dashed ${INK}; background: #fff; color: ${INK}; border-radius: 0;
+          font: inherit; font-weight: 700; font-size: 13.5px; width: 132px; min-height: 44px;
+          padding: 8px 11px; border: 3px dashed ${INK}; background: #fff; color: ${INK}; border-radius: 0;
         }
+        /* pressing down is movement, so the animation setting turns it off */
+        .pc-still .pc-btn { transition: none; }
+        .pc-still .pc-btn:active { transform: none; }
+        .pc-still .pc-nav:active { transform: translateY(-50%); }
+        .pc-still .pc-pill-dot { animation: none; }
         .pc-field { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
-        .pc-field input[type=color] { width: 46px; height: 34px; padding: 0; border: 2px solid ${INK}; background: none; cursor: pointer; }
+        .pc-field input[type=color] { width: 52px; height: 44px; padding: 0; border: 2px solid ${INK}; background: none; cursor: pointer; }
+        .pc-field input[type=color]:focus-visible { outline: 3px solid #38BDF8; outline-offset: 2px; }
         .pc-drawer { position: absolute; inset: 0; z-index: 20; background: rgba(13,13,17,.55); overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; padding: 14px; }
         .pc-drawer-inner { width: 100%; max-width: 620px; background: ${PAPER}; border: 3px solid ${INK}; box-shadow: 10px 10px 0 rgba(0,0,0,.5); padding: 16px; }
         .pc-fx { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 2; }
@@ -1831,7 +1857,7 @@ export default function PanelCount() {
         @keyframes pcBlink { 0%,100% { opacity: 1; } 50% { opacity: .2; } }
         .pc-brand {
           font: inherit; background: none; border: none; padding: 0; margin-right: 6px;
-          color: ${INK}; cursor: pointer; text-align: left; min-width: 84px;
+          color: ${INK}; cursor: pointer; text-align: left; min-width: 84px; min-height: 44px;
           perspective: 400px; flex-shrink: 0;
         }
         .pc-brand:focus-visible { outline: 3px solid #38BDF8; outline-offset: 3px; }
@@ -1876,6 +1902,10 @@ export default function PanelCount() {
         .pc-impact { animation: pcImpact 380ms cubic-bezier(.2,1.2,.4,1); }
         @media (prefers-reduced-motion: reduce) {
           .pc-pop, .pc-rip, .pc-slide, .pc-impact, .pc-spark, .pc-drift, .pc-scan, .pc-speed, .pc-glitch, .pc-spin { animation: none !important; }
+          .pc-pill-dot { animation: none !important; }
+          .pc-btn { transition: none; }
+          .pc-btn:active { transform: none; }
+          .pc-nav:active { transform: translateY(-50%); }
         }
       `}</style>
 
@@ -1890,7 +1920,7 @@ export default function PanelCount() {
         <SyncPill sync={syncer.sync} linked={syncer.linked} onClick={() => { setView("settings"); syncer.run("manual"); }} />
         <div style={{ display: "flex", gap: 5 }}>
           {[["panels", "Panels"], ["dashboard", "Dashboard"], ["settings", "Settings"]].map(([id, label]) => (
-            <button key={id} type="button" className="pc-tab" data-on={view === id} onClick={() => setView(id)}>{label}</button>
+            <button key={id} type="button" className="pc-btn pc-tab" data-on={view === id} onClick={() => setView(id)}>{label}</button>
           ))}
         </div>
       </header>

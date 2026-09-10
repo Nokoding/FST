@@ -154,6 +154,14 @@ Changing that key orphans everyone's data. If the shape changes, extend
   breaks the install silently.
 - The Google OAuth origin is `https://nokoding.github.io` with no `/FST`.
   Browsers match origins, not paths.
+- One button system, `.pc-btn` in the style block in `src/app.jsx`. Ink
+  outline, hard offset shadow, presses into the page when tapped. Tabs, chart
+  switchers, settings controls, the panel plus and minus and the sync pill all
+  use it. `data-on` marks a selected one, `data-danger` a destructive one,
+  `.pc-btn-sm` is the compact size. Do not give a new control its own look.
+  Every button is at least 44 by 44, keeps a `:focus-visible` outline, and
+  stops moving under `.pc-still`, which the app puts on the root when the
+  animation setting is off, and under `prefers-reduced-motion`.
 - Charts are hand written SVG in `src/app.jsx`. There was a chart library once.
   It was 500kb, fought the ink styling and could not be cached for offline.
 - Panels size themselves from a measured width via `ResizeObserver`, not from
