@@ -1451,7 +1451,7 @@ function SyncPill({ sync, linked, onClick }) {
   const [label, color] = map[sync.phase] || map.idle;
   return (
     <button type="button" onClick={onClick} title={sync.error || "Sync now"}
-      className="pc-btn pc-btn-sm" style={{ background: color }}>
+      className="pc-btn pc-btn-sm pc-btn-slim" style={{ background: color }}>
       <span className="pc-pill-dot" style={{
         width: 8, height: 8, borderRadius: "50%", background: INK, flexShrink: 0,
         animation: sync.phase === "syncing" ? "pcBlink 1s infinite" : "none",
@@ -1874,6 +1874,7 @@ export default function PanelCount() {
            shadow, and it presses into the page when you tap it. Everything
            clickable uses this rather than growing a look of its own. */
         .pc-btn {
+          position: relative;
           font: inherit; font-weight: 700; font-size: 13.5px; line-height: 1;
           display: inline-flex; align-items: center; justify-content: center; gap: 6px;
           min-height: 44px; min-width: 44px; padding: 10px 15px;
@@ -1920,6 +1921,17 @@ export default function PanelCount() {
           background: #fff; color: ${INK}; border-radius: 0;
         }
         .pc-select:focus-visible { outline: 3px solid #38BDF8; outline-offset: 2px; }
+        /* a short control that is still 44 to a finger. the visible box goes
+           back to the height it had before, and an invisible centred zone
+           carries the tap target. only for the things people rarely hit: the
+           logo, the sync pill, the view switcher. anything tapped constantly
+           stays 44 on screen, so it looks as big as it is. */
+        .pc-btn-slim { min-height: 0; min-width: 0; padding: 7px 13px; }
+        .pc-btn-slim::after {
+          content: ""; position: absolute; top: 50%; left: 50%;
+          transform: translate(-50%, -50%);
+          width: 100%; height: 100%; min-width: 44px; min-height: 44px;
+        }
         .pc-tab { flex-shrink: 0; }
         .pc-tab-add { font-size: 20px; padding: 0 14px; height: 44px; }
         .pc-tab-input {
@@ -1955,10 +1967,15 @@ export default function PanelCount() {
         @keyframes pcBlink { 0%,100% { opacity: 1; } 50% { opacity: .2; } }
         .pc-brand {
           font: inherit; background: none; border: none; padding: 0; margin-right: 6px;
-          color: ${INK}; cursor: pointer; text-align: left; min-width: 84px; min-height: 44px;
+          position: relative; color: ${INK}; cursor: pointer; text-align: left; min-width: 84px;
           perspective: 400px; flex-shrink: 0;
         }
         .pc-brand:focus-visible { outline: 3px solid #38BDF8; outline-offset: 3px; }
+        .pc-brand::after {
+          content: ""; position: absolute; top: 50%; left: 50%;
+          transform: translate(-50%, -50%);
+          width: 100%; height: 100%; min-width: 44px; min-height: 44px;
+        }
         .pc-b-flip { animation: pcBFlip 420ms cubic-bezier(.16,1,.3,1); }
         @keyframes pcBFlip { from { transform: rotateX(90deg); opacity: .1; } to { transform: none; opacity: 1; } }
         .pc-b-tear { animation: pcBTear 380ms cubic-bezier(.16,1,.3,1); }
@@ -2018,7 +2035,7 @@ export default function PanelCount() {
         <SyncPill sync={syncer.sync} linked={syncer.linked} onClick={() => { setView("settings"); syncer.run("manual"); }} />
         <div style={{ display: "flex", gap: 5 }}>
           {[["panels", "Panels"], ["dashboard", "Dashboard"], ["settings", "Settings"]].map(([id, label]) => (
-            <button key={id} type="button" className="pc-btn pc-tab" data-on={view === id} onClick={() => setView(id)}>{label}</button>
+            <button key={id} type="button" className="pc-btn pc-tab pc-btn-slim" data-on={view === id} onClick={() => setView(id)}>{label}</button>
           ))}
         </div>
       </header>
