@@ -22,6 +22,20 @@ of the script says how. It is the thing to trust about tap targets, since the
 visible size of a control and the size of its tap target are deliberately not
 the same.
 
+## Checking Settings with a config
+
+`public/config.js` can carry a Google client ID, and a copy of the app that has
+one is already set up. Settings hides the client ID field in that case and
+shows only Connect, so a working copy does not look unconfigured. Type a value
+into that field and it is saved on this device and the field stays, since
+that is someone deliberately using their own key.
+
+`googleDrive.preset()` in `src/sync.js` is the line between the two, and
+`test/sync.test.js` covers it. What the tests cannot see is the Settings
+screen, so after touching either one, open Settings once with `config.js`
+filled in and once with it blank, and check the field is gone in the first and
+there in the second. Nothing else surfaces this.
+
 Use the dev server rather than opening `dist/index.html` off the disk. A
 service worker needs a real origin, so the offline half of the app does nothing
 from a `file://` URL.

@@ -136,13 +136,20 @@ const googleDrive = {
   token: null,
   expires: 0,
 
+  /* what someone typed into Settings on this device, if anything */
+  own() { return localStorage.getItem("panelcount:googleClientId") || ""; },
+
   clientId() {
-    return localStorage.getItem("panelcount:googleClientId")
+    return this.own()
       || (window.PANEL_COUNT_CONFIG && window.PANEL_COUNT_CONFIG.googleClientId)
       || "";
   },
 
   configured() { return !!this.clientId(); },
+
+  /* it came from config.js and nobody has overridden it, so Settings has
+     nothing to ask for and hides the field */
+  preset() { return !this.own() && this.configured(); },
 
   async auth(interactive) {
     if (this.token && now() < this.expires - 60000) return this.token;
@@ -237,13 +244,15 @@ const customServer = {
   id: "server",
   label: "Discord",
 
+  own() { return localStorage.getItem("panelcount:serverUrl") || ""; },
   base() {
-    return localStorage.getItem("panelcount:serverUrl")
+    return this.own()
       || (window.PANEL_COUNT_CONFIG && window.PANEL_COUNT_CONFIG.serverUrl)
       || "";
   },
   token() { return localStorage.getItem("panelcount:serverToken") || ""; },
   configured() { return !!this.base(); },
+  preset() { return !this.own() && this.configured(); },
   linked() { return !!this.token(); },
 
   async connect() {

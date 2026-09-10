@@ -11,12 +11,16 @@ const assert = require("node:assert");
 const fs = require("fs");
 const path = require("path");
 
-function loadSync() {
+function loadSync({ config = {}, saved = {} } = {}) {
   const code = fs.readFileSync(path.join(__dirname, "..", "src", "sync.js"), "utf8");
   const stub = {
-    window: { PANEL_COUNT_CONFIG: {}, location: {} },
+    window: { PANEL_COUNT_CONFIG: config, location: {} },
     document: {},
-    localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+    localStorage: {
+      getItem: (k) => (k in saved ? saved[k] : null),
+      setItem: (k, v) => { saved[k] = v; },
+      removeItem: (k) => { delete saved[k]; },
+    },
     history: {},
     fetch: () => Promise.reject(new Error("no network in tests")),
   };
@@ -157,4 +161,55 @@ test("the device id stays local and is never uploaded", () => {
 test("merging against an empty remote is a no-op", () => {
   const s = derive(state([{ id: "e1", p: "A", d: 1, t: 10 }], [person("A")]));
   assert.equal(fingerprint(mergeStates(s, null)), fingerprint(s));
+});
+
+
+/*
+  Settings asks for a client ID it already has otherwise, which makes a copy
+  of the app that is configured look like one that is not. preset() is what
+  SyncSettings hides the text field on, so the two cases it has to tell apart
+  get a test each.
+*/
+
+test("a client ID from config.js counts as configured, with nothing to fill in", () => {
+  const { googleDrive } = loadSync({ config: { googleClientId: "baked.apps.googleusercontent.com" } });
+  assert.equal(googleDrive.configured(), true);
+  assert.equal(googleDrive.preset(), true);
+  assert.equal(googleDrive.own(), "");
+});
+
+test("a client ID typed on this device keeps the field, config.js or not", () => {
+  const typed = { "panelcount:googleClientId": "mine.apps.googleusercontent.com" };
+
+  const alone = loadSync({ saved: { ...typed } }).googleDrive;
+  assert.equal(alone.configured(), true);
+  assert.equal(alone.preset(), false);
+
+  const over = loadSync({
+    saved: { ...typed },
+    config: { googleClientId: "baked.apps.googleusercontent.com" },
+  }).googleDrive;
+  assert.equal(over.preset(), false);
+  assert.equal(over.clientId(), "mine.apps.googleusercontent.com");
+});
+
+test("no client ID anywhere is not configured and not preset", () => {
+  const { googleDrive } = loadSync();
+  assert.equal(googleDrive.configured(), false);
+  assert.equal(googleDrive.preset(), false);
+});
+
+test("the Discord server URL works the same way", () => {
+  const baked = loadSync({ config: { serverUrl: "https://w.example.dev" } }).customServer;
+  assert.equal(baked.configured(), true);
+  assert.equal(baked.preset(), true);
+
+  const typed = loadSync({
+    saved: { "panelcount:serverUrl": "https://mine.example.dev" },
+    config: { serverUrl: "https://w.example.dev" },
+  }).customServer;
+  assert.equal(typed.preset(), false);
+  assert.equal(typed.base(), "https://mine.example.dev");
+
+  assert.equal(loadSync().customServer.preset(), false);
 });

@@ -1465,6 +1465,13 @@ function SyncPill({ sync, linked, onClick }) {
 function SyncSettings({ syncer }) {
   const [clientId, setClientId] = useState(() => localStorage.getItem("panelcount:googleClientId") || "");
   const [serverUrl, setServerUrl] = useState(() => localStorage.getItem("panelcount:serverUrl") || "");
+
+  /* A value baked into config.js with nothing typed over it is already set up,
+     so asking for it again makes a working copy look unconfigured. Decided
+     once when Settings opens: someone who has their own value keeps the field
+     for the whole visit, so clearing it does not pull it out from under them. */
+  const [googlePreset] = useState(() => googleDrive.preset());
+  const [serverPreset] = useState(() => customServer.preset());
   const { sync, linked, providerId } = syncer;
 
   const saveClientId = (v) => {
@@ -1500,18 +1507,26 @@ function SyncSettings({ syncer }) {
   return (
     <>
       <Row title="Google Drive"
-        hint="Keeps a hidden file in your own Drive that only this app can see. No server to run, and nothing counts against anyone but you. It needs a client ID from Google first, which is a fifteen minute job you only do once. The steps are in docs/sync.md.">
-        <input className="pc-select" style={{ width: "100%", marginBottom: 8, fontSize: 12.5 }}
-          placeholder="1234-abcd.apps.googleusercontent.com"
-          value={clientId} onChange={(e) => saveClientId(e.target.value)} />
+        hint={googlePreset
+          ? "Keeps a hidden file in your own Drive that only this app can see. No server to run, and nothing counts against anyone but you. This copy of the app already carries the Google settings it needs, so there is nothing to fill in."
+          : "Keeps a hidden file in your own Drive that only this app can see. No server to run, and nothing counts against anyone but you. It needs a client ID from Google first, which is a fifteen minute job you only do once. The steps are in docs/sync.md."}>
+        {!googlePreset && (
+          <input className="pc-select" style={{ width: "100%", marginBottom: 8, fontSize: 12.5 }}
+            placeholder="1234-abcd.apps.googleusercontent.com"
+            value={clientId} onChange={(e) => saveClientId(e.target.value)} />
+        )}
         <InkButton small onClick={() => syncer.connect("google")}>Connect Google Drive</InkButton>
       </Row>
 
       <Row title="Discord"
-        hint="Discord can prove who you are but it has no place to keep files, so this one talks to the small server in the worker folder. Deploy it once, paste its address here, then log in with Discord.">
-        <input className="pc-select" style={{ width: "100%", marginBottom: 8, fontSize: 12.5 }}
-          placeholder="https://panel-count.yourname.workers.dev"
-          value={serverUrl} onChange={(e) => saveServerUrl(e.target.value)} />
+        hint={serverPreset
+          ? "Discord can prove who you are but it has no place to keep files, so this one talks to the small server in the worker folder. This copy of the app already knows where that server is, so there is nothing to fill in."
+          : "Discord can prove who you are but it has no place to keep files, so this one talks to the small server in the worker folder. Deploy it once, paste its address here, then log in with Discord."}>
+        {!serverPreset && (
+          <input className="pc-select" style={{ width: "100%", marginBottom: 8, fontSize: 12.5 }}
+            placeholder="https://panel-count.yourname.workers.dev"
+            value={serverUrl} onChange={(e) => saveServerUrl(e.target.value)} />
+        )}
         <InkButton small onClick={() => syncer.connect("server")}>Log in with Discord</InkButton>
       </Row>
 
