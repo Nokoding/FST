@@ -1106,12 +1106,16 @@ function Dashboard({ state, people, setSettings }) {
           ))}
         </div>
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 18 }}>
-          <InkButton small active={settings.chartSource === "period"} onClick={() => setSettings({ chartSource: "period" })}>This period</InkButton>
-          <InkButton small active={settings.chartSource === "allTime"} onClick={() => setSettings({ chartSource: "allTime" })}>All time</InkButton>
-          <span style={{ width: 14 }} />
-          <InkButton small active={settings.chartScope === "section"} onClick={() => setSettings({ chartScope: "section" })}>This page</InkButton>
-          <InkButton small active={settings.chartScope === "all"} onClick={() => setSettings({ chartScope: "all" })}>Everyone</InkButton>
+        {/* each pair wraps as a unit, so the two questions never read as one row */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 18, marginBottom: 18 }}>
+          <div style={{ display: "flex", gap: 7 }}>
+            <InkButton small active={settings.chartSource === "period"} onClick={() => setSettings({ chartSource: "period" })}>This period</InkButton>
+            <InkButton small active={settings.chartSource === "allTime"} onClick={() => setSettings({ chartSource: "allTime" })}>All time</InkButton>
+          </div>
+          <div style={{ display: "flex", gap: 7 }}>
+            <InkButton small active={settings.chartScope === "section"} onClick={() => setSettings({ chartScope: "section" })}>This page</InkButton>
+            <InkButton small active={settings.chartScope === "all"} onClick={() => setSettings({ chartScope: "all" })}>Everyone</InkButton>
+          </div>
         </div>
 
         <div style={{ height: 340, border: `3px solid ${INK}`, boxShadow: `9px 9px 0 ${INK}`, background: "#fff", padding: 12, marginBottom: 26 }}>
@@ -1570,12 +1574,12 @@ const markTourSeen = () => {
 
 const TOUR_STEPS = [
   {
-    title: "Start with a page",
-    body: "A page is a group of people. Name it after wherever they live in your life, or just call it Friends. Make one and this follows along.",
+    title: "Here is the shape of it",
+    body: "Pages hold people, each person gets a panel, and you tap plus on a panel when you spend real time with someone. A minute and you will have the whole thing. Start by making a page.",
   },
   {
     title: "Now add a person",
-    body: "Everyone you add gets a panel of their own, with their name and their own colors. Add one. You can pile on more whenever.",
+    body: "One is enough to start. Pick whoever you have been meaning to message back. The panel that appears is theirs, and you can make it look like them later.",
   },
   {
     title: "Tap + when you see them",
@@ -1595,14 +1599,15 @@ function Tour({ step, onNext, onSkip }) {
   const last = step === TOUR_STEPS.length - 1;
   const { title, body } = TOUR_STEPS[step];
 
+  /* it sits under the app rather than over it, so it never covers the thing
+     it is asking you to tap */
   return (
     <div style={{
-      position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 15,
-      display: "flex", justifyContent: "center", padding: 12, pointerEvents: "none",
+      flexShrink: 0, borderTop: `3px solid ${INK}`, background: INK,
+      display: "flex", justifyContent: "center", padding: "3px 3px max(3px, env(safe-area-inset-bottom))",
     }}>
       <div role="dialog" aria-label="Getting started" style={{
-        width: "100%", maxWidth: 460, pointerEvents: "auto", background: PAPER,
-        border: `3px solid ${INK}`, boxShadow: `8px 8px 0 ${INK}`, padding: "14px 15px 15px",
+        width: "100%", maxWidth: 560, background: PAPER, padding: "13px 15px 14px",
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
           <div className="pc-name" style={{ fontSize: 26, lineHeight: 1.05 }}>{title}</div>
@@ -2039,11 +2044,12 @@ export default function PanelCount() {
           <CustomizeDrawer person={customPerson} settings={state.settings} onEdit={handlers.onEdit}
             onPhoto={handlers.onPhoto} onClose={() => setCustomId(null)} />
         )}
-        {tour !== null && (
-          <Tour step={tour} onSkip={endTour}
-            onNext={() => (tour + 1 < TOUR_STEPS.length ? setTour(tour + 1) : endTour())} />
-        )}
       </main>
+
+      {tour !== null && (
+        <Tour step={tour} onSkip={endTour}
+          onNext={() => (tour + 1 < TOUR_STEPS.length ? setTour(tour + 1) : endTour())} />
+      )}
 
       <input ref={importRef} type="file" accept="application/json" style={{ display: "none" }}
         onChange={(e) => { const f = e.target.files?.[0]; if (f) doImport(f); e.target.value = ""; }} />
