@@ -23,6 +23,13 @@ Everything lives in one object, saved as one JSON blob.
 
 `deviceId` never leaves the device. Everything else syncs.
 
+`sections` is what the interface calls pages. The key keeps its old name on
+purpose, since renaming it would orphan every saved record for no gain.
+
+A new install starts with `sections` and `people` both empty. `migrate()`
+spreads the saved record over that default, so an existing install keeps
+everything it had.
+
 ## Counts are derived, never stored
 
 This is the one decision the rest hangs off. A person's totals are not fields

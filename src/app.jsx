@@ -943,31 +943,25 @@ function Section({ title, hint, children }) {
 }
 
 /* ================================================================== */
-/*  the very first page                                                */
+/*  ask for one name, used for the first page and the first person     */
 /* ================================================================== */
 
-function FirstPage({ onCreate }) {
-  const [name, setName] = useState("");
-  const make = (e) => { e.preventDefault(); onCreate(name); setName(""); };
+function PromptCard({ title, blurb, placeholder, cta, onSubmit }) {
+  const [value, setValue] = useState("");
+  const go = (e) => { e.preventDefault(); onSubmit(value); setValue(""); };
 
   return (
     <div style={{ height: "100%", overflowY: "auto", background: PAPER, display: "grid", placeItems: "center", padding: 22 }}>
-      <form onSubmit={make} style={{
+      <form onSubmit={go} style={{
         width: "100%", maxWidth: 420, background: "#fff",
         border: `3px solid ${INK}`, boxShadow: `10px 10px 0 ${INK}`, padding: "20px 20px 22px",
       }}>
-        <div className="pc-name" style={{ fontSize: 40, lineHeight: 1, marginBottom: 8 }}>
-          Make your first page
-        </div>
-        <p style={{ fontSize: 14, lineHeight: 1.6, opacity: 0.75, margin: "0 0 16px" }}>
-          A page is a group of people. Everyone you put on it gets their own
-          panel to count on. One page is plenty to start with.
-        </p>
-        <input className="pc-select" autoFocus value={name} placeholder="Friends"
-          aria-label="Name your first page"
-          onChange={(e) => setName(e.target.value)}
+        <div className="pc-name" style={{ fontSize: 38, lineHeight: 1.02, marginBottom: 8 }}>{title}</div>
+        <p style={{ fontSize: 14, lineHeight: 1.6, opacity: 0.75, margin: "0 0 16px" }}>{blurb}</p>
+        <input className="pc-select" autoFocus value={value} placeholder={placeholder} aria-label={title}
+          onChange={(e) => setValue(e.target.value)}
           style={{ width: "100%", marginBottom: 12, fontSize: 15 }} />
-        <InkButton onClick={make}>Make the page</InkButton>
+        <InkButton onClick={go}>{cta}</InkButton>
       </form>
     </div>
   );
@@ -977,7 +971,7 @@ function FirstPage({ onCreate }) {
 /*  panels view                                                        */
 /* ================================================================== */
 
-function PanelsView({ people, settings, handlers }) {
+function PanelsView({ people, settings, handlers, pageName, onAddPerson }) {
   const [index, setIndex] = useState(0);
   const [expanded, setExpanded] = useState(null);
   const [ripKey, setRipKey] = useState(0);
@@ -998,14 +992,10 @@ function PanelsView({ people, settings, handlers }) {
 
   if (people.length === 0) {
     return (
-      <div style={{ height: "100%", display: "grid", placeItems: "center", padding: 30 }}>
-        <div style={{ textAlign: "center", maxWidth: 320 }}>
-          <div className="pc-name" style={{ fontSize: 32, marginBottom: 8 }}>Nobody here yet</div>
-          <p style={{ fontSize: 14, opacity: 0.7, lineHeight: 1.6 }}>
-            Add a friend to this section and they get their own panel.
-          </p>
-        </div>
-      </div>
+      <PromptCard
+        title={pageName ? `Who goes on ${pageName}?` : "Add the first person"}
+        blurb="Everyone you add gets a panel of their own, with a plus and a minus on it. You can change how they look later."
+        placeholder="Their name" cta="Add them" onSubmit={onAddPerson} />
     );
   }
 
@@ -1123,7 +1113,7 @@ function Dashboard({ state, people, setSettings }) {
           <InkButton small active={settings.chartSource === "period"} onClick={() => setSettings({ chartSource: "period" })}>This period</InkButton>
           <InkButton small active={settings.chartSource === "allTime"} onClick={() => setSettings({ chartSource: "allTime" })}>All time</InkButton>
           <span style={{ width: 14 }} />
-          <InkButton small active={settings.chartScope === "section"} onClick={() => setSettings({ chartScope: "section" })}>This section</InkButton>
+          <InkButton small active={settings.chartScope === "section"} onClick={() => setSettings({ chartScope: "section" })}>This page</InkButton>
           <InkButton small active={settings.chartScope === "all"} onClick={() => setSettings({ chartScope: "all" })}>Everyone</InkButton>
         </div>
 
@@ -1187,6 +1177,18 @@ function StatBlock({ label, value, tone = INK }) {
 /* ================================================================== */
 /*  settings                                                           */
 /* ================================================================== */
+
+function NameForm({ placeholder, cta, onSubmit }) {
+  const [value, setValue] = useState("");
+  const go = (e) => { e.preventDefault(); onSubmit(value); setValue(""); };
+  return (
+    <form onSubmit={go} style={{ display: "flex", gap: 7, width: "100%", flexWrap: "wrap" }}>
+      <input className="pc-select" style={{ flex: "1 1 150px" }} value={value}
+        placeholder={placeholder} aria-label={cta} onChange={(e) => setValue(e.target.value)} />
+      <InkButton small onClick={go}>{cta}</InkButton>
+    </form>
+  );
+}
 
 function Row({ title, hint, children }) {
   return (
@@ -1271,8 +1273,8 @@ function SettingsView({ state, setSettings, actions, sectionId, onCustomize, ins
           <InkButton small onClick={actions.resetNow}>Reset now and file it</InkButton>
         </Row>
 
-        <h2 className="pc-name" style={{ fontSize: 30, margin: "30px 0 2px" }}>Sections</h2>
-        <Row title="Your sections" hint="A section is a group of panels, like one for Discord and one for Instagram.">
+        <h2 className="pc-name" style={{ fontSize: 30, margin: "30px 0 2px" }}>Pages</h2>
+        <Row title="Your pages" hint="A page is a group of panels. Deleting one deletes the people on it. There is a + at the end of the page tabs that does the same job as the box below.">
           <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 8 }}>
             {state.sections.map((s) => (
               <div key={s.id} style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -1281,12 +1283,12 @@ function SettingsView({ state, setSettings, actions, sectionId, onCustomize, ins
                 <InkButton small danger onClick={() => actions.deleteSection(s.id)}>Delete</InkButton>
               </div>
             ))}
-            <div><InkButton small onClick={actions.addSection}>Add a section</InkButton></div>
+            <NameForm placeholder="New page" cta="Add a page" onSubmit={actions.addSection} />
           </div>
         </Row>
 
-        <h2 className="pc-name" style={{ fontSize: 30, margin: "30px 0 2px" }}>Friends in this section</h2>
-        <Row title="Profiles" hint="Open a profile to change its gradient, banner, frame, effect and tags.">
+        <h2 className="pc-name" style={{ fontSize: 30, margin: "30px 0 2px" }}>People on this page</h2>
+        <Row title="Profiles" hint="Open a profile to change its colors, banner, frame, effect and tags.">
           <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 12 }}>
             {!sectionId && <div style={{ fontSize: 13.5, opacity: 0.65 }}>Make a page first and this fills in.</div>}
             {sectionId && inSection.length === 0 && <div style={{ fontSize: 13.5, opacity: 0.65 }}>Nobody on this page yet.</div>}
@@ -1307,7 +1309,7 @@ function SettingsView({ state, setSettings, actions, sectionId, onCustomize, ins
                 </div>
               </div>
             ))}
-            {sectionId && <div><InkButton small onClick={() => actions.addPerson(sectionId)}>Add a friend</InkButton></div>}
+            {sectionId && <NameForm placeholder="Their name" cta="Add them" onSubmit={(n) => actions.addPerson(sectionId, n)} />}
           </div>
         </Row>
 
@@ -1319,7 +1321,7 @@ function SettingsView({ state, setSettings, actions, sectionId, onCustomize, ins
           <InkButton small onClick={actions.exportData}>Export a backup</InkButton>
           <InkButton small onClick={actions.importData}>Import a backup</InkButton>
         </Row>
-        <Row title="Start over" hint="Clears every section, friend, count and past period. It cannot be undone.">
+        <Row title="Start over" hint="Clears every page, person, count and past period. It cannot be undone.">
           <InkButton small danger onClick={actions.wipe}>Erase everything</InkButton>
         </Row>
       </div>
@@ -1552,6 +1554,45 @@ function Brand({ motion }) {
 }
 
 /* ================================================================== */
+/*  the page strip                                                     */
+/* ================================================================== */
+
+function PageStrip({ sections, activeId, onPick, onCreate }) {
+  const [naming, setNaming] = useState(false);
+  const [name, setName] = useState("");
+  const inputRef = useRef(null);
+
+  useEffect(() => { if (naming) inputRef.current?.focus(); }, [naming]);
+
+  const stop = () => { setNaming(false); setName(""); };
+  const make = (e) => { e.preventDefault(); onCreate(name); stop(); };
+
+  return (
+    <div style={{ display: "flex", gap: 5, overflowX: "auto", flex: 1, minWidth: 120, alignItems: "center" }}>
+      {sections.map((s) => (
+        <button key={s.id} type="button" className="pc-tab" data-on={s.id === activeId} onClick={() => onPick(s.id)}>
+          {s.name}
+        </button>
+      ))}
+
+      {naming ? (
+        <form onSubmit={make} style={{ display: "flex", gap: 5, flexShrink: 0 }}
+          /* clicking away drops it, but focus moving to the Add button does not */
+          onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) stop(); }}>
+          <input ref={inputRef} className="pc-tab-input" value={name} placeholder="New page"
+            aria-label="Name for the new page" onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Escape") stop(); }} />
+          <button type="submit" className="pc-tab" data-on="true">Add</button>
+        </form>
+      ) : (
+        <button type="button" className="pc-tab pc-tab-add" onClick={() => setNaming(true)}
+          title="Make a new page" aria-label="Make a new page">+</button>
+      )}
+    </div>
+  );
+}
+
+/* ================================================================== */
 /*  app                                                                */
 /* ================================================================== */
 
@@ -1648,9 +1689,10 @@ export default function PanelCount() {
         tombs: [...s.tombs, { id, t }, ...gone],
       };
     }),
-    addPerson: (sid) => setState((s) => ({
+    addPerson: (sid, name) => setState((s) => ({
       ...s,
-      people: [...s.people, makePerson(sid, "New friend", GRADIENT_PRESETS[s.people.length % GRADIENT_PRESETS.length])],
+      people: [...s.people, makePerson(sid, (name || "").trim() || "New friend",
+        GRADIENT_PRESETS[s.people.length % GRADIENT_PRESETS.length])],
     })),
     deletePerson: (id) => setState((s) => ({
       ...s,
@@ -1714,7 +1756,8 @@ export default function PanelCount() {
       fontFamily: "ui-sans-serif, system-ui, sans-serif" }}>{status}</div>;
   }
 
-  const activeId = (state.sections.find((s) => s.id === sectionId) || state.sections[0] || {}).id || null;
+  const activePage = state.sections.find((s) => s.id === sectionId) || state.sections[0] || null;
+  const activeId = activePage ? activePage.id : null;
   const people = state.people.filter((p) => p.sectionId === activeId);
   const customPerson = state.people.find((p) => p.id === customId) || null;
   const noPages = state.sections.length === 0;
@@ -1760,6 +1803,11 @@ export default function PanelCount() {
         .pc-link { background: none; border: none; color: ${INK}; text-decoration: underline; cursor: pointer; font: inherit; font-size: 12.5px; margin-left: 10px; padding: 0; }
         .pc-tab { font: inherit; font-weight: 700; font-size: 13.5px; padding: 6px 13px; border: 2px solid ${INK}; background: transparent; color: ${INK}; cursor: pointer; white-space: nowrap; }
         .pc-tab[data-on="true"] { background: ${INK}; color: ${PAPER}; }
+        .pc-tab-add { font-size: 17px; line-height: 1; padding: 4px 11px; flex-shrink: 0; }
+        .pc-tab-input {
+          font: inherit; font-weight: 700; font-size: 13.5px; width: 128px;
+          padding: 6px 10px; border: 2px dashed ${INK}; background: #fff; color: ${INK}; border-radius: 0;
+        }
         .pc-field { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
         .pc-field input[type=color] { width: 46px; height: 34px; padding: 0; border: 2px solid ${INK}; background: none; cursor: pointer; }
         .pc-drawer { position: absolute; inset: 0; z-index: 20; background: rgba(13,13,17,.55); overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; padding: 14px; }
@@ -1837,13 +1885,8 @@ export default function PanelCount() {
         paddingTop: "max(9px, env(safe-area-inset-top))",
       }}>
         <Brand motion={state.settings.motion} />
-        <div style={{ display: "flex", gap: 5, overflowX: "auto", flex: 1, minWidth: 120 }}>
-          {state.sections.map((s) => (
-            <button key={s.id} type="button" className="pc-tab" data-on={s.id === activeId} onClick={() => setSectionId(s.id)}>
-              {s.name}
-            </button>
-          ))}
-        </div>
+        <PageStrip sections={state.sections} activeId={activeId}
+          onPick={setSectionId} onCreate={actions.addSection} />
         <SyncPill sync={syncer.sync} linked={syncer.linked} onClick={() => { setView("settings"); syncer.run("manual"); }} />
         <div style={{ display: "flex", gap: 5 }}>
           {[["panels", "Panels"], ["dashboard", "Dashboard"], ["settings", "Settings"]].map(([id, label]) => (
@@ -1855,8 +1898,15 @@ export default function PanelCount() {
       {status && <div style={{ background: INK, color: PAPER, fontSize: 12.5, padding: "5px 12px", flexShrink: 0 }}>{status}</div>}
 
       <main style={{ flex: 1, minHeight: 0, position: "relative" }}>
-        {view === "panels" && noPages && <FirstPage onCreate={actions.addSection} />}
-        {view === "panels" && !noPages && <PanelsView people={people} settings={state.settings} handlers={handlers} />}
+        {view === "panels" && noPages && (
+          <PromptCard title="Make your first page"
+            blurb="A page is a group of people. Everyone on it gets their own panel to count on. One page is plenty to start with."
+            placeholder="Friends" cta="Make the page" onSubmit={actions.addSection} />
+        )}
+        {view === "panels" && !noPages && (
+          <PanelsView people={people} settings={state.settings} handlers={handlers}
+            pageName={activePage?.name} onAddPerson={(name) => actions.addPerson(activeId, name)} />
+        )}
         {view === "dashboard" && <Dashboard state={state} people={people} setSettings={setSettings} />}
         {view === "settings" && (
           <SettingsView state={state} setSettings={setSettings} actions={actions} sectionId={activeId}

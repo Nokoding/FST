@@ -72,6 +72,17 @@ If you change the React import line or that banner comment in `src/app.jsx`,
 the build throws with a message telling you to update `build.js`. That is
 deliberate, it fails loudly instead of emitting something broken.
 
+## Pages and sections are the same thing
+
+The interface calls them **pages**. The data key is `sections` and stays that
+way, because renaming it breaks everyone's saved record for no benefit. Code
+and docs about the data shape say sections, anything on screen says pages.
+
+A page can be made from the `+` at the end of the tab strip in the header
+(`PageStrip`), which names it inline, or from Settings. Either way `addSection`
+switches to the new page, and an empty page asks for its first person rather
+than sitting there empty.
+
 ## The one thing you must not break
 
 Counts are an append only event log, not running totals. Each `+` or `-`
