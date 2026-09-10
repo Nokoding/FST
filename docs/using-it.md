@@ -50,8 +50,8 @@ the dashboard, and it sets everyone back to zero for the new period. All time
 totals are never touched by any of this.
 
 There is a **Reset now and file it** button if you want to start a fresh period
-today, and a small **zero the period** link next to each person if you only
-want to clear one of them.
+today, and a **Zero the period** button next to each person in Settings if you
+only want to clear one of them.
 
 ## The dashboard
 
@@ -66,7 +66,7 @@ Below the chart:
 - Three totals, including the gap between the person you see most and the
   person you see least. That gap turns red at five, which is a nudge and
   nothing more.
-- A breakdown bar per person, sorted by the same numbers the chart uses.
+- A bar per person showing their share of the total.
 - Past periods, most recent first, once you have had a reset.
 
 ## Making someone's panel theirs

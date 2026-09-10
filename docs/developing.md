@@ -27,7 +27,7 @@ failure.
 ```
 src/
   app.jsx       the whole app. React, one file
-  sync.js       state shape, merge engine, sync providers. Plain JS, no JSX
+  sync.js       merge engine, storage, sync providers. Plain JS, no JSX
 public/         static shell, copied into dist untouched
   vendor/       React and the font, committed on purpose
 scripts/
@@ -89,7 +89,8 @@ rules.
 - **Styling.** One `<style>` block inside the app component, near the bottom.
   The comic button system is the `.pc-btn` family, and everything clickable
   should use it rather than growing its own look.
-- **State shape, merging, storage, sync providers.** `src/sync.js`.
+- **Merging, storage, sync providers.** `src/sync.js`. The state shape itself,
+  `defaultState()` and `migrate()`, is at the top of `src/app.jsx`.
 - **Manifest, service worker, icons, config.** `public/`.
 
 A sync provider is an object with `connect`, `disconnect`, `linked`, `pull` and
