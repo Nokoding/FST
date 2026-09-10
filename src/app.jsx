@@ -1921,7 +1921,7 @@ export default function PanelCount() {
         }
         .pc-select:focus-visible { outline: 3px solid #38BDF8; outline-offset: 2px; }
         .pc-tab { flex-shrink: 0; }
-        .pc-tab-add { font-size: 20px; padding: 10px 14px; }
+        .pc-tab-add { font-size: 20px; padding: 0 14px; height: 44px; }
         .pc-tab-input {
           font: inherit; font-weight: 700; font-size: 13.5px; width: 132px; min-height: 44px;
           padding: 8px 11px; border: 3px dashed ${INK}; background: #fff; color: ${INK}; border-radius: 0;
